@@ -1,0 +1,22 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 0;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@media (max-width: 768px) {
+  .content {
+    margin-left: 80px; /* Sidebar colapsada */
+  }
+}

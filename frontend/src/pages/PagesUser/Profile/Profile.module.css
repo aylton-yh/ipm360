@@ -1,0 +1,293 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.container {
+  width: 100%;
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+.pageHeader {
+  margin-bottom: 25px;
+}
+
+.pageHeader h2 {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 5px 0;
+  letter-spacing: -0.5px;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+/* LEFT COLUMN - USER CARD */
+.userCard {
+  background: var(--bg-secondary);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  position: sticky;
+  top: 100px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.userCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.15);
+}
+
+.coverPhoto {
+  height: 140px;
+  background: linear-gradient(120deg, #2563eb 0%, #06b6d4 100%);
+  position: relative;
+}
+
+.coverPhoto::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.avatarWrapper {
+  margin-top: -60px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.avatarImg {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid var(--bg-secondary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.userCard:hover .avatarImg {
+  transform: scale(1.1);
+}
+
+.userInfo {
+  text-align: center;
+  padding: 0 25px 30px;
+}
+
+.userInfo h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 5px 0;
+  letter-spacing: -0.5px;
+}
+
+.role {
+  color: var(--accent-primary);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(22, 101, 52, 0.1);
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid var(--border-light);
+  text-align: left;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.contactItem:hover {
+  color: #2563eb;
+}
+
+.contactItem svg {
+  color: var(--text-muted);
+  font-size: 16px;
+  min-width: 20px;
+  transition: color 0.2s;
+}
+
+.contactItem:hover .contactIcon {
+  color: #2563eb;
+}
+
+/* RIGHT COLUMN - DETAILS */
+.detailsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.cardSection {
+  background: white;
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 15px -3px rgba(0, 0, 0, 0.05); /* Sombra ultra suave */
+  border: 1px solid #f8fafc;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cardSection:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+  font-size: 19px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 15px;
+}
+
+.sectionTitle svg {
+  color: #3b82f6; /* Azul destaque nos ícones */
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.infoField label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.infoField p {
+  font-size: 15px;
+  color: #334155;
+  font-weight: 600;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.infoField p:hover {
+  border-color: #cbd5e1;
+  background: white;
+}
+
+.skillsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.skillTag {
+  padding: 8px 18px;
+  background: white;
+  color: #2563eb;
+  border-radius: 50px; /* Pill shape */
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+  transition: all 0.2s;
+}
+
+.skillTag:hover {
+  background: #2563eb;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+.bioText {
+  color: #475569;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+.btnEdit {
+  width: 100%;
+  padding: 16px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 16px; /* Borda mais arredondada */
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+}
+
+.btnEdit:hover {
+  background: #0f172a;
+  transform: translateY(-2px);
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .profileHeader { flex-direction: column; align-items: center; text-align: center; margin-top: -80px; }
+  .formGrid { grid-template-columns: 1fr; gap: 20px; }
+  .btnActions { flex-direction: column; }
+}

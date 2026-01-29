@@ -1,0 +1,212 @@
+/* SEARCH SUGGESTIONS */
+.suggestionsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  margin-top: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  z-index: 50;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.2s;
+  text-align: left;
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  background: #f8fafc;
+}
+
+.suggestionIcon {
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+.suggestionItem:hover .suggestionIcon {
+  color: var(--primary-color);
+}
+
+.suggestionText {
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestionText strong {
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.suggestionText span {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ... RESTANTE DO CÓDIGO MANTIDO ... */
+.helpContainer {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+/* Hero Section */
+.heroSection {
+  background: #1e293b;
+  padding: 60px 20px 100px 20px;
+  text-align: center;
+  border-radius: 0 0 30px 30px;
+  position: relative;
+  overflow: visible; /* Permitir dropdown */
+}
+.heroSection::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.heroTitle {
+  color: white; font-size: 32px; margin-bottom: 30px; font-weight: 800; position: relative;
+}
+
+.searchWrapper {
+  max-width: 600px; margin: 0 auto; position: relative; z-index: 20;
+}
+
+.searchIcon {
+  position: absolute; left: 25px; top: 15px; /* Ajustado para input de 50px height */
+  color: #94a3b8; font-size: 18px; pointer-events: none;
+}
+
+.searchInput {
+  width: 100%; padding: 15px 20px 15px 60px; border-radius: 16px; border: none; font-size: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); outline: none;
+}
+
+/* Conteúdo */
+.contentWrapper {
+  max-width: 1000px; margin: -60px auto 0; padding: 0 20px; position: relative; z-index: 10;
+}
+
+.sectionTitle {
+  font-size: 18px; color: #334155; margin-bottom: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Topic Grid (Cards Melhorados) */
+.topicGrid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 50px;
+}
+
+.topicCard {
+  background: white; padding: 30px; border-radius: 20px; text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative; border: 1px solid rgba(0,0,0,0.03); overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.topicCard:hover {
+  transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.cardGlow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: currentColor;
+}
+
+.iconBox {
+  width: 70px; height: 70px; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 28px; margin-bottom: 20px;
+  transition: transform 0.3s;
+}
+
+.topicCard:hover .iconBox { transform: scale(1.1) rotate(5deg); }
+
+.topicCard h3 { margin: 0 0 10px; font-size: 20px; color: #1e293b; font-weight: 700; }
+.topicCard p { margin: 0 0 20px; color: #64748b; font-size: 14px; line-height: 1.5; }
+
+.linkText {
+  color: var(--primary-color); font-weight: 600; font-size: 14px; margin-top: auto;
+}
+
+/* Cores Específicas dos Cards */
+.cardBlue { border-top: 5px solid #3b82f6; }
+.cardBlue .iconBox { background: #eff6ff; color: #3b82f6; }
+.cardBlue:hover .linkText { color: #2563eb; }
+
+.cardGreen { border-top: 5px solid #22c55e; }
+.cardGreen .iconBox { background: #f0fdf4; color: #16a34a; }
+.cardGreen:hover .linkText { color: #16a34a; }
+
+.cardRed { border-top: 5px solid #ef4444; }
+.cardRed .iconBox { background: #fef2f2; color: #dc2626; }
+.cardRed:hover .linkText { color: #dc2626; }
+
+.cardPurple { border-top: 5px solid #a855f7; }
+.cardPurple .iconBox { background: #faf5ff; color: #9333ea; }
+.cardPurple:hover .linkText { color: #9333ea; }
+
+
+/* TOPIC DETAILS PAGE */
+.topicHeader {
+  padding: 40px 20px 80px; color: white; margin-bottom: -40px;
+  border-radius: 0 0 30px 30px;
+}
+.bg-blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+.bg-green { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.bg-red { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.bg-purple { background: linear-gradient(135deg, #9333ea, #a855f7); }
+
+.backBtn {
+  background: rgba(255,255,255,0.2); border: none; padding: 10px 20px; border-radius: 30px; color: white; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; margin-bottom: 30px; transition: .2s;
+}
+.backBtn:hover { background: rgba(255,255,255,0.3); }
+
+.topicHeaderContent {
+  display: flex; align-items: center; gap: 20px; max-width: 900px; margin: 0 auto;
+}
+.largeIcon { font-size: 40px; opacity: 0.9; }
+
+.articlesList {
+  display: flex; flex-direction: column; gap: 15px; max-width: 900px; margin: 0 auto;
+}
+
+.articleCard {
+  background: white; padding: 25px; border-radius: 16px; display: flex; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); align-items: flex-start;
+}
+
+.articleIcon {
+  width: 40px; height: 40px; background: #f1f5f9; color: #64748b; border-radius: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+}
+
+.articleCard h3 { margin: 0 0 10px; color: #1e293b; font-size: 17px; }
+.articleCard p { margin: 0; color: #475569; line-height: 1.6; }
+
+.tipsBox {
+  margin-top: 30px; background: #fffbeb; border: 1px solid #fcd34d; padding: 20px; border-radius: 12px; color: #92400e; display: flex; gap: 15px; align-items: center;
+}
+.tipIcon { font-size: 24px; }
+
+/* Footer */
+.contactFooter {
+  background: white; padding: 30px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;
+  margin-top: 50px;
+}
+.contactInfo h3 { margin: 0; color: #1e293b; }
+.btnContact {
+  background: #1e293b; color: white; padding: 12px 30px; border-radius: 30px; border: none; cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600;
+}

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro | Plataforma Educacional</title>
+     <link rel="stylesheet" href="../../../assets/_libs/@mdi/css/materialdesignicons.css">
+    <script src="../../../assets/_js/register/index.js" type="module" defer></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #10b981;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --gray-color: #94a3b8;
+            --danger-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark-color);
+        }
+
+        .registration-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            background-color: #f8fafc;
+        }
+
+        .registration-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .registration-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .registration-header .logo i {
+            font-size: 2rem;
+        }
+
+        .registration-header .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .registration-header h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .registration-header p {
+            color: var(--gray-color);
+        }
+
+        .registration-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .terms {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .terms label {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        .terms a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--gray-color);
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        .logo i {
+            font-size: 1.75rem;
+        }
+
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .nav-item.active {
+            background-color: #eef2ff;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            width: 1.5rem;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h2 {
+            font-size: 1.75rem;
+            color: var(--dark-color);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 0.5rem;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        .search-bar i {
+            color: var(--gray-color);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Library Content */
+        .library-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .library-header h3 {
+            font-size: 1.25rem;
+            color: var(--dark-color);
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .filter-btn {
+            background-color: #f1f5f9;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Resource Grid */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .resource-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .resource-image {
+            height: 150px;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-color);
+            font-size: 3rem;
+        }
+
+        .resource-info {
+            padding: 1rem;
+        }
+
+        .resource-category {
+            display: inline-block;
+            background-color: #eef2ff;
+            color: var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .resource-author {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-bottom: 1rem;
+        }
+
+        .resource-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray-color);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .resource-type {
+            font-size: 0.75rem;
+            color: var(--gray-color);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+
+
+        .form-group {
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: grid;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group img {
+            height: 150px;
+            width: 150px;
+            margin: auto;
+            border: 1px solid #000;
+            border-radius: 50%;
+            box-shadow: 0px 0px 5px #9a9a9a;
+
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .form-group input::-webkit-file-upload-button {
+            background-color: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+
+            .resource-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="registration-container">
+        <div class="registration-header">
+            <div class="logo">
+                 
+                <h1  class="mdi mdi-school"> FullSchool</h1>
+            </div>
+            <h2>Crie sua conta gratuita</h2>
+            <p>Junte-se a milhares de estudantes e professores</p>
+        </div>
+
+        <div class="registration-content">
+            <form id="registration-form">
+                <div class="form-group">
+                    <label for="name_user">Nome</label>
+                    <input type="text" id="name_user" name="name_user" placeholder="Digite seu Primeiro nome">
+                </div>
+                <div class="form-group">
+                    <label for="last_name_user">Sobrenome</label>
+                    <input type="text" id="name_user_last" name="last_name_user" placeholder="Digite seu Primeiro nome">
+                </div>
+                <div class="form-group">
+                    <label for="email_user">E-mail</label>
+                    <input type="email" id="email_user" name="email_user" required placeholder="Digite seu e-mail">
+                </div>
+                <div class="form-group">
+                    <label for="phone_number_user">Telefone</label>
+                    <input type="tel" id="phone_number_user" name="phone_number_user" required placeholder="Digite seu telefone">
+                </div>
+                <div class="form-group">
+                    <label for="">Descrição</label>
+                    <textarea name="descrition_user" id="descrition_user" placeholder="Fale pouco sobre você"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="password_user">Senha</label>
+                    <input type="password" id="password_user" required minlength="8" name="password_user"
+                        placeholder="Crie uma senha (mínimo 8 caracteres)">
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm-password">Confirmar Senha</label>
+                    <input type="password" id="reg-confirm-password" required minlength="8"
+                        placeholder="Confirme sua senha">
+                </div>
+                <div class="form-group">
+                    <input type="file" name="image_user" id="image_user">
+                </div>
+                <div class="form-group">
+                    <img src="" alt="" id="imagem-preview">
+                </div>
+                <div class="form-group">
+                    <label for="reg-role">Tipo de Conta</label>
+                    <select id="reg-role" name="type_user" required>
+                        <option value="">Selecione seu perfil</option>
+                        <option value="student">Estudante</option>
+                        <option value="teacher">Professor</option>
+                    </select>
+                </div>
+                <div class="form-group terms">
+                    <input type="checkbox" id="reg-terms" required>
+                    <label for="reg-terms">Eu concordo com os <a href="#">Termos de Serviço</a> e <a href="#">Política
+                            de Privacidade</a></label>
+                </div>
+                <button type="submit" class="submit-btn">Criar Conta</button>
+                <p class="login-link">
+                    Já tem uma conta? <a href="login.html">Faça login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+
+ 
+</body>
+
+</html>

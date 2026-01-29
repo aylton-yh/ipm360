@@ -1,0 +1,110 @@
+.container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2/3 para o gráfico principal */
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+
+.header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 5px 0;
+}
+
+.header p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Gráfico Wave */
+.waveWrapper {
+  flex: 1;
+  width: 100%;
+  min-height: 300px;
+}
+
+/* Gráfico Rosca */
+.doughnutWrapper {
+  position: relative;
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerInfo {
+  position: absolute;
+  text-align: center;
+  pointer-events: none;
+}
+
+.centerInfo h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1;
+}
+
+.centerInfo span {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legendRow {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.legendItem span {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}

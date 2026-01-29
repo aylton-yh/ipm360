@@ -1,0 +1,61 @@
+.card {
+  display: flex;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+  padding: 12px;
+  flex-wrap: wrap;
+height: 15%;
+  width: calc(70% - 300px);
+  transition: transform 0.3;
+}
+.card:hover{
+  transform: translateY(-5px);
+}
+.container{
+    margin: 2px;
+  height: 50px;
+}
+.photoWrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 16px;
+  background-color: #f0f0f0;
+}
+
+.photoWrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  flex: 100;
+}
+
+.info h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.info p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* Cores alternadas para os cards */
+.card:nth-child(odd) {
+  background-color: #e8f5e9; /* verde claro */
+}
+
+.card:nth-child(even) {
+  background-color: #e3f2fd; /* azul claro */
+}
+
+/* Cor do texto do status inativo */
+.card .info p:last-child {
+  color: #9e9e9e; /* cinza */
+}
