@@ -1,6 +1,6 @@
 export async function PostRequest(url, content) {
     const Options = {
-       // header: "application/json",
+        // header: "application/json",
         body: content,
         method: "post"
     }
@@ -32,7 +32,7 @@ export async function GetRequest(url) {
     }
 
 }
-export async function PuteRequest(url,content) {
+export async function PutRequest(url, content) {
     const Options = {
         headers: { "Content-Type": "application/json" },
 
@@ -55,8 +55,8 @@ export async function PuteRequest(url,content) {
 export async function DeleteRequest(url,) {
     const Options = {
         headers: { "Content-Type": "application/json" }
-,
-        methods: "delete"
+        ,
+        method: "delete"
     }
     const resquest = await fetch(url, Options)
     if (!resquest.ok) {

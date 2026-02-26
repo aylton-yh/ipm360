@@ -1,0 +1,87 @@
+const db = require('../config/db');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// Login
+exports.login = async (req, res) => {
+    const { username_or_email, password } = req.body;
+
+    try {
+        // Buscar no cadastro_admin ou cadastro_usuario (o frontend parece lidar com ambos)
+        // Vamos simplificar buscando em ambas ou mapeando conforme o role
+        let userQuery = await db.query(
+            'SELECT id_cadastro_admin as id, username, email, senha_hash, role, status FROM cadastro_admin WHERE username = $1 OR email = $1',
+            [username_or_email]
+        );
+
+        if (userQuery.rows.length === 0) {
+            userQuery = await db.query(
+                'SELECT id_cadastro_usuario as id, username, email, senha_hash, role, status FROM cadastro_usuario WHERE username = $1 OR email = $1',
+                [username_or_email]
+            );
+        }
+
+        if (userQuery.rows.length === 0) {
+            return res.status(401).json({ detail: 'Utilizador não encontrado' });
+        }
+
+        const user = userQuery.rows[0];
+
+        // Verificar senha
+        const isMatch = await bcrypt.compare(password, user.senha_hash);
+        if (!isMatch) {
+            return res.status(401).json({ detail: 'Senha incorreta' });
+        }
+
+        // Gerar Token
+        const token = jwt.sign(
+            { id: user.id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '8h' }
+        );
+
+        res.json({
+            access_token: token,
+            token_type: 'bearer',
+            user_name: user.username,
+            user_role: user.role
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ detail: 'Erro interno no servidor' });
+    }
+};
+
+// Obter dados do usuário logado (me)
+exports.getMe = async (req, res) => {
+    try {
+        // req.user vem do authMiddleware
+        res.json({
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role
+        });
+    } catch (error) {
+        res.status(500).json({ detail: 'Erro ao buscar dados do usuário' });
+    }
+};
+
+// Registro de Admin (pedido)
+exports.register = async (req, res) => {
+    const { username, email, password, role } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const table = role === 'admin' ? 'cadastro_admin' : 'cadastro_usuario';
+
+        await db.query(
+            `INSERT INTO ${table} (username, email, senha_hash, role) VALUES ($1, $2, $3, $4)`,
+            [username, email, hashedPassword, role || (table === 'cadastro_admin' ? 'admin' : 'colaborador')]
+        );
+
+        res.status(201).json({ message: 'Registrado com sucesso. Aguarde aprovação.' });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ detail: 'Erro ao registrar. Verifique os dados.' });
+    }
+};
