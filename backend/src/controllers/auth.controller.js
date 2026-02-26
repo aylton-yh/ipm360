@@ -9,23 +9,24 @@ exports.login = async (req, res) => {
     try {
         // Buscar no cadastro_admin ou cadastro_usuario (o frontend parece lidar com ambos)
         // Vamos simplificar buscando em ambas ou mapeando conforme o role
-        let userQuery = await db.query(
-            'SELECT id_cadastro_admin as id, username, email, senha_hash, role, status FROM cadastro_admin WHERE username = $1 OR email = $1',
-            [username_or_email]
+
+        let [userRows] = await db.query(
+            'SELECT id_cadastro_admin as id, username, email, senha_hash, role, status FROM cadastro_admin WHERE username = ? OR email = ?',
+            [username_or_email, username_or_email]
         );
 
-        if (userQuery.rows.length === 0) {
-            userQuery = await db.query(
-                'SELECT id_cadastro_usuario as id, username, email, senha_hash, role, status FROM cadastro_usuario WHERE username = $1 OR email = $1',
-                [username_or_email]
+        if (userRows.length === 0) {
+            [userRows] = await db.query(
+                'SELECT id_cadastro_usuario as id, username, email, senha_hash, role, status FROM cadastro_usuario WHERE username = ? OR email = ?',
+                [username_or_email, username_or_email]
             );
         }
 
-        if (userQuery.rows.length === 0) {
+        if (userRows.length === 0) {
             return res.status(401).json({ detail: 'Utilizador não encontrado' });
         }
 
-        const user = userQuery.rows[0];
+        const user = userRows[0];
 
         // Verificar senha
         const isMatch = await bcrypt.compare(password, user.senha_hash);
@@ -75,7 +76,7 @@ exports.register = async (req, res) => {
         const table = role === 'admin' ? 'cadastro_admin' : 'cadastro_usuario';
 
         await db.query(
-            `INSERT INTO ${table} (username, email, senha_hash, role) VALUES ($1, $2, $3, $4)`,
+            `INSERT INTO ${table} (username, email, senha_hash, role) VALUES (?, ?, ?, ?)`,
             [username, email, hashedPassword, role || (table === 'cadastro_admin' ? 'admin' : 'colaborador')]
         );
 
