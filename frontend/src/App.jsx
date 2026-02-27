@@ -16,11 +16,6 @@ const PageLoader = () => (
 // Páginas de Autenticação Admin
 const LandingPage = lazy(() => import('./pages/PagesAdmin/LandingPage'));
 const Login = lazy(() => import('./pages/PagesAdmin/Auth/Login'));
-const Cadastrar = lazy(() => import('./pages/PagesAdmin/Auth/Cadastrar'));
-
-// Páginas de Autenticação Usuário (Colaborador)
-const LoginUser = lazy(() => import('./pages/PagesUser/LoginUser'));
-const CadastroUser = lazy(() => import('./pages/PagesUser/CadastroUser'));
 
 // Páginas do Dashboard (Admin)
 const Dashboard = lazy(() => import('./pages/PagesAdmin/Dashboard'));
@@ -34,12 +29,10 @@ const Permissoes = lazy(() => import('./pages/PagesAdmin/Permissoes'));
 const Configuracoes = lazy(() => import('./pages/PagesAdmin/Configuracoes'));
 const MinhaConta = lazy(() => import('./pages/PagesAdmin/MinhaConta'));
 const Relatorios = lazy(() => import('./pages/PagesAdmin/Relatorios'));
-const Despesas = lazy(() => import('./pages/PagesAdmin/Despesas'));
 const Ajuda = lazy(() => import('./pages/PagesAdmin/Ajuda'));
 const ChatGeral = lazy(() => import('./pages/ChatGeral'));
 
 // Páginas do Usuário
-const LandingPageUser = lazy(() => import('./pages/PagesUser/LandingPageUser'));
 const UserHome = lazy(() => import('./pages/PagesUser/Home'));
 const MinhasAvaliacoes = lazy(() => import('./pages/PagesUser/MinhasAvaliacoes'));
 const Status = lazy(() => import('./pages/PagesUser/Status'));
@@ -60,17 +53,9 @@ export default function App() {
           <EmployeeProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* ... existing routes ... */}
-                <Route path="/" element={<LandingPage />} />
-
                 {/* Rotas de Autenticação Admin */}
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/cadastrar" element={<Cadastrar />} />
-
-                {/* Rotas de Autenticação Usuário (Colaborador) */}
-                <Route path="/user/login" element={<LoginUser />} />
-                <Route path="/user/cadastro" element={<CadastroUser />} />
-                <Route path="/user" element={<LandingPageUser />} />
 
                 {/* Rotas do Dashboard (Admin) - URLs na raiz */}
                 <Route element={<DashboardLayout />}>
@@ -85,7 +70,6 @@ export default function App() {
                   <Route path="/configuracoes" element={<Configuracoes />} />
                   <Route path="/minha-conta" element={<MinhaConta />} />
                   <Route path="/relatorios" element={<Relatorios />} />
-                  <Route path="/despesas" element={<Despesas />} />
                   <Route path="/ajuda" element={<Ajuda />} />
                   <Route path="/chat-geral" element={<ChatGeral />} />
                 </Route>

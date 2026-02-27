@@ -115,9 +115,9 @@ export default function Funcionarios() {
       </div>
 
       <div className={styles.grid}>
-        {filtered.map(func => (
+        {filtered.length > 0 ? filtered.map(func => (
           <div key={func.id} className={`${styles.card} card-modern`}>
-            {/* Borda superior colorida baseada no status */}
+            {/* ... rest of card ... */}
             <div className={`${styles.cardTopBar} ${styles[func.status.toLowerCase()]}`}></div>
 
             <div className={styles.cardInfo}>
@@ -226,7 +226,11 @@ export default function Funcionarios() {
               </button>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className={styles.emptyState}>
+            <p>Nenhum funcionário encontrado com os filtros atuais.</p>
+          </div>
+        )}
       </div>
 
       {/* MODAL PERFIL COMPLETO */}

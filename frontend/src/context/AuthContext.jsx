@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
         const saved = localStorage.getItem('ipm360_users');
         const users = saved ? JSON.parse(saved) : [];
         // Filtro de segurança: Garantir que nenhum perfil de admin apareça como colaborador
-        return users.filter(u => u.username !== 'Aylton Dinis' && u.nome !== 'Aylton Dinis' && u.role === 'employee');
+        return users.filter(u => u.username !== 'Aylton Dinis' && u.nome !== 'Aylton Dinis' && (u.role === 'employee' || u.role === 'colaborador'));
     });
 
     // Estado Global de Processamento (Logout, Delete Account, etc)
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }) => {
                 const loggedUser = {
                     username: data.user_name,
                     role: data.user_role,
-                    id: data.user_name, // Temporário, idealmente usar ID real do DB
+                    id: data.user_id || data.user_name,
                     status: 'approved'
                 };
 
@@ -369,7 +369,7 @@ export const AuthProvider = ({ children }) => {
         const updated = { ...currentUser, ...newData };
         setCurrentUser(updated);
 
-        if (updated.role === 'employee') {
+        if (updated.role === 'employee' || updated.role === 'colaborador') {
             setAllUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
         } else {
             setAllAdmins(prev => prev.map(a => a.id === currentUser.id ? updated : a));

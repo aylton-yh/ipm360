@@ -83,12 +83,12 @@ export default function UserLayout() {
 
     // Se não houver ninguém logado, volta para a landing page do colaborador
     if (!currentUser) {
-      navigate('/user', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [currentUser, navigate]);
 
   // Bloqueio de renderização para admins nas telas de colaborador
-  const isAllowed = currentUser && (currentUser.role === 'employee' || !currentUser.role?.includes('admin'));
+  const isAllowed = currentUser && (currentUser.role === 'employee' || currentUser.role === 'colaborador' || !currentUser.role?.includes('admin'));
 
   if (!currentUser || !isAllowed || currentUser.cargo?.includes('Administrador')) {
     return <div style={{ height: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

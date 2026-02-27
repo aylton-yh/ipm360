@@ -11,6 +11,7 @@ import { FaUserCircle, FaHistory, FaChevronDown, FaChevronRight, FaList, FaTroph
 import { AuthContext } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import styles from './Sidebar.module.css'
+import logoImg from '../../assets/images/LogoSistema.jpeg'
 
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const { currentUser, notifications, markNotificationAsRead, clearNotifications, approveAdmin, rejectAdmin, hasPermission } = React.useContext(AuthContext);
@@ -69,16 +70,14 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
       <div className={styles.header}>
-        <div className={styles.logo}>
-          {!isCollapsed && (
-            <>
-              <h2>IPM360°</h2>
-              <span>Gestão de Desempenho</span>
-            </>
-          )}
-          {isCollapsed && <h2>IPM</h2>}
+        <div className={styles.logoContainer}>
+          <img src={logoImg} alt="Logo" className={styles.systemLogo} />
+          <div className={styles.logoText}>
+            <h2>IPM360°</h2>
+            {!isCollapsed && <span>Gestão Inteligente</span>}
+          </div>
         </div>
-        <button className={styles.toggleBtn} onClick={toggleSidebar}>
+        <button className={styles.toggleBtn} onClick={toggleSidebar} title={isCollapsed ? "Expandir" : "Recolher"}>
           {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
       </div>
@@ -239,12 +238,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
           </Link>
         )}
 
-        {currentUser?.status !== 'pending' && (
-          <Link to='/despesas' className={isActive('/despesas') ? styles.active : ''} title={isCollapsed ? "Despesas" : ""}>
-            <FaFileInvoiceDollar />
-            {!isCollapsed && "Minhas Despesas"}
-          </Link>
-        )}
 
         <Link to='/ajuda' className={isActive('/ajuda') ? styles.active : ''} title={isCollapsed ? "Ajuda" : ""}>
           <BsInfoCircle />

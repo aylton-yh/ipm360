@@ -31,8 +31,26 @@ export default function CadastrarFuncionario() {
     admissao: editingEmployee?.admissao || '',
     sexo: editingEmployee?.sexo || '',
     estadoCivil: editingEmployee?.estadoCivil || '',
-    status: editingEmployee?.status || 'Ativo'
+    status: editingEmployee?.status || 'Ativo',
+    username: '',
+    password: ''
   });
+
+  // Função para gerar senha automática
+  const generatePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+    let pass = "";
+    for (let i = 0; i < 10; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  };
+
+  useEffect(() => {
+    if (!editingEmployee) {
+      setFormData(prev => ({ ...prev, password: generatePassword() }));
+    }
+  }, [editingEmployee]);
 
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
@@ -51,7 +69,7 @@ export default function CadastrarFuncionario() {
   }, [formData.departamento, departments]);
 
   const cargosDisponiveis = useMemo(() => {
-    return selectedDeptData ? selectedDeptData.secções : [];
+    return selectedDeptData ? (selectedDeptData.seccoes || []) : [];
   }, [selectedDeptData]);
 
   const handleChange = (e) => {
@@ -87,8 +105,8 @@ export default function CadastrarFuncionario() {
     }
 
     // Encontrar ID do cargo selecionado
-    const selectedCargoObj = cargosDisponiveis.find(c => c.nome_seccao_cargo === formData.cargo);
-    const cargoId = selectedCargoObj ? selectedCargoObj.id_seccao_cargo : 1;
+    const selectedCargoObj = cargosDisponiveis.find(c => c.nome === formData.cargo);
+    const cargoId = selectedCargoObj ? selectedCargoObj.id : 1;
 
     const employeeData = {
       nome: formData.nome,
@@ -105,7 +123,9 @@ export default function CadastrarFuncionario() {
       num_agente: formData.num_agente,
       dataAdmissao: formData.admissao,
       sexo: formData.sexo,
-      estadoCivil: formData.estadoCivil
+      estadoCivil: formData.estadoCivil,
+      username: formData.username,
+      password: formData.password
     };
 
 
@@ -271,7 +291,7 @@ export default function CadastrarFuncionario() {
                       {formData.departamento ? 'Selecione a Função...' : 'Selecione o Dept. primeiro'}
                     </option>
                     {cargosDisponiveis.map((cargo, index) => (
-                      <option key={index} value={cargo}>{cargo}</option>
+                      <option key={index} value={cargo.nome}>{cargo.nome}</option>
                     ))}
                   </select>
                 </div>
@@ -298,6 +318,38 @@ export default function CadastrarFuncionario() {
                     <option value="Suspenso">Suspenso</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            <h3 className={styles.sectionTitle} style={{ marginTop: '30px' }}>Credenciais de Acesso</h3>
+            <div className={styles.gridForm}>
+              <div className={styles.inputGroup}>
+                <label>Nome de Usuário (Username)</label>
+                <div className={styles.inputWrapper}>
+                  <FaUser className={styles.icon} />
+                  <input
+                    type="text"
+                    placeholder="ex: joao.silva"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label>Senha de Acesso (Gerada Automaticamente)</label>
+                <div className={styles.inputWrapper}>
+                  <FaSave className={styles.icon} />
+                  <input
+                    type="text"
+                    name="password"
+                    value={formData.password}
+                    readOnly
+                    className={styles.readonlyInput}
+                  />
+                </div>
+                <small className={styles.hint}>Tome nota desta senha para entregar ao funcionário.</small>
               </div>
             </div>
 

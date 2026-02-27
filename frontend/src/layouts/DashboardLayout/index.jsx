@@ -14,6 +14,12 @@ export default function DashboardLayout() {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Proteção: Se o user não for admin, volta para a home dele
+  const isSytemAdmin = currentUser?.role === 'admin' || currentUser?.role === 'global_admin';
+  if (currentUser && !isSytemAdmin) {
+    return <Navigate to="/user/home" replace />;
+  }
+
   // Proteção: Se o admin estiver pendente, ele só pode acessar /minha-conta
   if (currentUser?.status === 'pending' && location.pathname !== '/minha-conta' && location.pathname !== '/ajuda') {
     return <Navigate to="/minha-conta" replace />;

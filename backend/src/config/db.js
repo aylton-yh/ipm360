@@ -15,6 +15,6 @@ const pool = mysql.createPool({
 console.log('Base de dados MySQL conectada com sucesso!');
 
 module.exports = {
-    query: (sql, params) => pool.execute(sql, params),
+    query: (sql, params) => pool.query(sql, params),
     pool
 };

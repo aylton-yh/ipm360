@@ -69,7 +69,7 @@ export default function Departamentos() {
       head: dept.head,
       color: dept.color,
       iconKey: dept.icon,
-      seccoes: dept.seccoes
+      seccoes: dept.seccoes.map(s => typeof s === 'string' ? s : s.nome)
     });
     setMenuAberto(null);
     setShowModal(true);
@@ -93,15 +93,20 @@ export default function Departamentos() {
       seccoes: newDept.seccoes.filter(s => s.trim() !== '')
     };
 
+    let result;
     if (editingId) {
-      await updateDepartment(editingId, deptToSave);
+      result = await updateDepartment(editingId, deptToSave);
     } else {
-      await addDepartment(deptToSave);
+      result = await addDepartment(deptToSave);
     }
 
-    setShowModal(false);
-    setEditingId(null);
-    setNewDept({ nome: '', head: '', color: 'blue', iconKey: 'tie', seccoes: [''] });
+    if (result && result.success) {
+      setShowModal(false);
+      setEditingId(null);
+      setNewDept({ nome: '', head: '', color: 'blue', iconKey: 'tie', seccoes: [''] });
+    } else {
+      alert(result?.message || 'Erro ao guardar departamento. Verifique a sua ligação ou permissões.');
+    }
   };
 
   const getStaffCount = (deptName) => {
@@ -175,7 +180,9 @@ export default function Departamentos() {
               <span className={styles.sectionTitle}>Seções & Áreas</span>
               <div className={styles.tags}>
                 {dept.seccoes.map((sec, idx) => (
-                  <span key={idx} className={styles.tag}>{sec}</span>
+                  <span key={idx} className={styles.tag}>
+                    {typeof sec === 'string' ? sec : sec.nome}
+                  </span>
                 ))}
               </div>
             </div>

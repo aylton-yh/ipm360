@@ -34,8 +34,8 @@ export default function Login() {
       if (result.success) {
         // Redirecionar baseando-se na role
         setTimeout(() => {
-          if (result.role === 'employee') {
-            navigate('/user');
+          if (result.role === 'employee' || result.role === 'colaborador') {
+            navigate('/user/home');
           } else {
             navigate('/dashboard');
           }

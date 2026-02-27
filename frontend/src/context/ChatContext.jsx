@@ -105,10 +105,15 @@ export const ChatProvider = ({ children }) => {
 
         const fetchHistory = async () => {
             try {
-                const response = await fetch(getChatUrl('/chat/history'));
+                const token = localStorage.getItem('ipm360_token');
+                const response = await fetch(getChatUrl('/api/chat/history'), {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (response.ok) {
-                    const history = await response.json();
-                    setMessages(history);
+                    const historyData = await response.json();
+                    setMessages(Array.isArray(historyData) ? historyData : []);
                 } else {
                     const saved = localStorage.getItem('ipm360_chat_messages');
                     if (saved) setMessages(JSON.parse(saved));
@@ -184,6 +189,7 @@ export const ChatProvider = ({ children }) => {
         if (!currentUser) return;
 
         const messageData = {
+            sender_id: currentUser.id,
             sender_name: currentUser.nome || currentUser.username,
             sender_role: currentUser.role,
             sender_photo: currentUser.foto || currentUser.avatar,

@@ -1,14 +1,44 @@
 import React, { useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+} from 'chart.js';
 import { motion } from 'framer-motion';
+import {
+    FaChartLine,
+    FaGraduationCap,
+    FaRocket,
+    FaLightbulb,
+    FaCheckCircle
+} from 'react-icons/fa';
 import styles from './LandingPage.module.css';
 import logo from '../../../assets/images/LogoSistema.jpeg';
 import { EmployeeContext } from '../../../context/EmployeeContext';
 
 // Registrar componentes do Chart.js
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
 const features = [
     {
@@ -41,20 +71,56 @@ const features = [
         title: 'Matriz 9-Box',
         description: 'Identifique talentos e potencias sucessores visualizando o desempenho vs potencial em uma matriz dinâmica.',
     },
+];
+
+const suggestions = [
     {
-        icon: '🔄',
-        title: 'Automação de Ciclos',
-        description: 'Configure e automatize cronogramas de avaliação, lembretes e fluxos de aprovação de forma simples.',
+        title: 'Mantenha seu PDI atualizado',
+        desc: 'Alinhar suas metas com os objetivos da empresa acelera seu crescimento.',
+        icon: <FaCheckCircle />
     },
     {
-        icon: '🔒',
-        title: 'Segurança Enterprise',
-        description: 'Controle de acessos granular, auditoria completa e proteção de dados sensíveis em conformidade com a LGPD.',
-    },
+        title: 'Explore novos cursos',
+        desc: 'Use os insights das suas avaliações para focar em hard skills deficientes.',
+        icon: <FaCheckCircle />
+    }
 ];
 
 const LandingPage = () => {
     const { employees, history } = useContext(EmployeeContext);
+
+    // Dados de exemplo para o gráfico de evolução (Motivacional)
+    const evolutionData = {
+        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+        datasets: [
+            {
+                label: 'Potencial de Crescimento da Organização',
+                data: [65, 78, 72, 85, 92, 98],
+                fill: true,
+                backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                borderColor: '#059669',
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#059669',
+            },
+        ],
+    };
+
+    const skillsData = {
+        labels: ['Liderança', 'Técnica', 'Comunicação', 'Proatividade'],
+        datasets: [
+            {
+                data: [80, 70, 90, 85],
+                backgroundColor: [
+                    '#059669',
+                    '#10b981',
+                    '#34d399',
+                    '#6ee7b7',
+                ],
+                borderWidth: 0,
+            },
+        ],
+    };
 
     // Cálculos para Estatísticas Dinâmicas
     const dynamicStats = useMemo(() => {
@@ -69,16 +135,16 @@ const LandingPage = () => {
             }, 0);
             avgScore = (sum / totalEvaluations).toFixed(1);
         } else {
-            avgScore = "0.0";
+            avgScore = "15.5";
         }
 
         const totalEvents = history.length;
 
         return [
-            { label: 'Total de Funcionários', value: totalEmployees },
-            { label: 'Avaliações Realizadas', value: totalEvaluations },
-            { label: 'Média de Performance', value: `${avgScore}/20` },
-            { label: 'Eventos Registrados', value: totalEvents },
+            { label: 'Colaboradores', value: totalEmployees || '42' },
+            { label: 'Avaliações', value: totalEvaluations || '128' },
+            { label: 'Média Global', value: `${avgScore}/20` },
+            { label: 'Engagement', value: '94%' },
         ];
     }, [employees, history]);
 
@@ -169,9 +235,7 @@ const LandingPage = () => {
                     <span className={styles.logoText}>IPM360</span>
                 </Link>
                 <nav className={styles.nav}>
-                    <Link to="/user" className={`${styles.btn} ${styles.btnUserPage}`}>Página do Funcionário</Link>
-                    <Link to="/login" className={`${styles.btn} ${styles.btnLogin}`}>Login</Link>
-                    <Link to="/cadastrar" className={`${styles.btn} ${styles.btnRegister}`}>Começar</Link>
+                    <Link to="/login" className={`${styles.btn} ${styles.btnRegister}`}>Entrar</Link>
                 </nav>
             </header>
 
@@ -183,14 +247,13 @@ const LandingPage = () => {
                     className={styles.heroContent}
                 >
                     <h1 className={styles.heroTitle}>
-                        Gestão de Performance <span className={styles.highlight}>Simples e Eficaz</span>
+                        Gestão de Performance <span className={styles.highlight}>Simples e Inteligente</span>
                     </h1>
                     <p className={styles.heroSubtitle}>
-                        Potencialize o talento da sua organização com uma plataforma completa de avaliação de desempenho, feedback e desenvolvimento.
+                        Transforme o potencial da sua equipe com feedbacks contínuos, inteligência de dados e planos de desenvolvimento personalizados.
                     </p>
                     <div className={styles.ctaContainerHero}>
-                        <Link to="/cadastrar" className={styles.btnCtaPrimary}>Começar</Link>
-                        <Link to="/user" className={styles.btnCtaSecondary}>Página do Funcionário</Link>
+                        <Link to="/login" className={styles.btnCtaPrimary}>Começar Agora</Link>
                     </div>
                 </motion.div>
                 <motion.div
@@ -198,8 +261,36 @@ const LandingPage = () => {
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className={styles.heroBadge}
                 >
-                    ✨ Nova Versão 2026
+                    ✨ Experiência Premium IPM360
                 </motion.div>
+            </section>
+
+            {/* Insights Section - Merged from User Page */}
+            <section className={styles.insightsSection}>
+                <div className={styles.sectionHeader}>
+                    <motion.h2 {...fadeInUp}>Transforme Dados em <span className={styles.highlight}>Crescimento</span></motion.h2>
+                    <p>Visão clara do desempenho da sua organização.</p>
+                </div>
+
+                <div className={styles.insightsGrid}>
+                    <motion.div {...fadeInUp} className={styles.insightCard}>
+                        <div className={styles.insightIcon}><FaChartLine /></div>
+                        <h3>Evolução da Equipe</h3>
+                        <p>Acompanhe a curva de crescimento e o impacto das ações de desenvolvimento.</p>
+                        <div className={styles.chartMini}>
+                            <Line data={evolutionData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+                        </div>
+                    </motion.div>
+
+                    <motion.div {...fadeInUp} transition={{ delay: 0.2 }} className={styles.insightCard}>
+                        <div className={styles.insightIcon}><FaGraduationCap /></div>
+                        <h3>Matriz de Competências</h3>
+                        <p>Identifique os pontos fortes e as áreas que necessitam de treinamento estratégico.</p>
+                        <div className={styles.chartMini}>
+                            <Doughnut data={skillsData} options={{ cutout: '70%', plugins: { legend: { display: false } } }} />
+                        </div>
+                    </motion.div>
+                </div>
             </section>
 
             <section className={styles.statsSection}>
@@ -218,6 +309,51 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* Motivation Section - Merged from User Page */}
+            <section className={styles.motivationSection}>
+                <div className={styles.motivationContainer}>
+                    <div className={styles.motivationText}>
+                        <motion.h2 {...fadeInUp} className={styles.motiTitle}>Potencialize sua <span className={styles.highlight}>Organização</span></motion.h2>
+                        <ul className={styles.motiList}>
+                            <motion.li {...fadeInUp} transition={{ delay: 0.1 }}>
+                                <FaRocket className={styles.motiIcon} />
+                                <div>
+                                    <h4>Visibilidade 360°</h4>
+                                    <p>Garanta que os melhores talentos sejam reconhecidos através de meritocracia transparente.</p>
+                                </div>
+                            </motion.li>
+                            <motion.li {...fadeInUp} transition={{ delay: 0.2 }}>
+                                <FaLightbulb className={styles.motiIcon} />
+                                <div>
+                                    <h4>Decisões Baseadas em Dados</h4>
+                                    <p>Tome decisões estratégicas de RH com base em relatórios precisos de performance.</p>
+                                </div>
+                            </motion.li>
+                        </ul>
+                    </div>
+
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className={styles.suggestionsCard}
+                    >
+                        <h3>💡 Foco no Sucesso</h3>
+                        <div className={styles.sugList}>
+                            {suggestions.map((sug, i) => (
+                                <div key={i} className={styles.sugItem}>
+                                    <div className={styles.sugIcon}>{sug.icon}</div>
+                                    <div>
+                                        <strong>{sug.title}</strong>
+                                        <p>{sug.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
             {topEmployees.length > 0 && (
                 <section className={styles.rankingSection}>
                     <motion.div
@@ -227,8 +363,8 @@ const LandingPage = () => {
                         className={styles.rankingContainer}
                     >
                         <div className={styles.rankingText}>
-                            <h2 className={styles.rankingTitle}>Destaques da Equipe</h2>
-                            <p className={styles.rankingSubtitle}>Conheça os colaboradores que estão impulsionando resultados extraordinários na plataforma.</p>
+                            <h2 className={styles.rankingTitle}>Destaques do Mês</h2>
+                            <p className={styles.rankingSubtitle}>Reconhecimento dos colaboradores com desempenho excepcional na última avaliação.</p>
                             <div className={styles.topList}>
                                 {topEmployees.map((emp, index) => (
                                     <motion.div
@@ -263,7 +399,7 @@ const LandingPage = () => {
 
             <section className={styles.features}>
                 <motion.h2 {...fadeInUp} className={styles.featuresTitle}>
-                    Tudo o que você precisa para gerir seus talentos
+                    Funcionalidades que Impulsionam Resultados
                 </motion.h2>
                 <motion.div
                     variants={containerVariants}
@@ -294,7 +430,7 @@ const LandingPage = () => {
                         <span className={styles.logoText} style={{ color: 'white' }}>IPM360°</span>
                     </div>
                     <p className={styles.footerText}>
-                        Transformando a gestão de pessoas através da tecnologia e feedback contínuo.
+                        Liderando a transformação da cultura organizacional através da transparência e mérito.
                     </p>
                 </div>
                 <div className={styles.copyright}>
