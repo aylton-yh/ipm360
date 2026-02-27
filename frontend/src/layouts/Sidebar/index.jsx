@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BiAlignMiddle } from 'react-icons/bi'
 import { AiOutlineUserAdd, AiTwotoneSetting } from 'react-icons/ai'
@@ -11,16 +11,16 @@ import { FaUserCircle, FaHistory, FaChevronDown, FaChevronRight, FaList, FaTroph
 import { AuthContext } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import styles from './Sidebar.module.css'
+import logoImg from '../../assets/images/LogoSistema.jpeg'
 
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
-  const { currentUser, notifications, markNotificationAsRead, clearNotifications, approveAdmin, rejectAdmin, hasPermission } = React.useContext(AuthContext);
+  const { currentUser, logout, notifications, markNotificationAsRead, clearNotifications, approveAdmin, rejectAdmin, hasPermission, setProcessingAction } = useContext(AuthContext);
   const { unreadCount: chatUnreadCount } = useChat();
   const location = useLocation();
   const navigate = useNavigate();
   const [funcionariosOpen, setFuncionariosOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
+ 
   const unreadCount = notifications.filter(n => !n.read && (!n.userId || n.userId === currentUser?.id)).length;
   const myNotifications = notifications.filter(n => !n.userId || n.userId === currentUser?.id);
 
@@ -28,7 +28,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
 
   // Verifica se alguma rota filha está ativa para manter o menu aberto (opcional)
   // Mas o user pode querer controle manual. Vou deixar manual e abrir se o path bater.
-  React.useEffect(() => {
+  useEffect(() => {
     if (location.pathname.includes('/cadastrar-funcionario') || location.pathname.includes('/funcionarios')) {
       setFuncionariosOpen(true);
     }
@@ -37,48 +37,27 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const toggleFuncionarios = () => setFuncionariosOpen(!funcionariosOpen);
 
   const handleLogout = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simula o tempo de processamento do logout
+    if (e) e.preventDefault();
+    setProcessingAction('logout');
+    
     setTimeout(() => {
+      logout();
       navigate('/login');
-    }, 3000);
+    }, 2800); // 2.8s de animação premium
   };
 
-  if (isLoading) {
-    return (
-      <div className={styles.loadingOverlay}>
-        <div className={styles.cubeGrid}>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-        </div>
-
-        <div className={styles.loadingText}>Encerrando Sessão...</div>
-      </div>
-    );
-  }
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
       <div className={styles.header}>
-        <div className={styles.logo}>
-          {!isCollapsed && (
-            <>
-              <h2>IPM360°</h2>
-              <span>Gestão de Desempenho</span>
-            </>
-          )}
-          {isCollapsed && <h2>IPM</h2>}
+        <div className={styles.logoContainer}>
+          <img src={logoImg} alt="Logo" className={styles.systemLogo} />
+          <div className={styles.logoText}>
+            <h2>IPM360°</h2>
+            {!isCollapsed && <span>Gestão Inteligente</span>}
+          </div>
         </div>
-        <button className={styles.toggleBtn} onClick={toggleSidebar}>
+        <button className={styles.toggleBtn} onClick={toggleSidebar} title={isCollapsed ? "Expandir" : "Recolher"}>
           {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
       </div>
@@ -108,7 +87,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
                       <div className={styles.notifContent} onClick={() => markNotificationAsRead(n.id)}>
                         {n.message}
                       </div>
-                      {n.type === 'new_registration' && currentUser.role === 'global_admin' && (
+                      {n.type === 'new_registration' && currentUser?.role === 'global_admin' && (
                         <div className={styles.notifActions}>
                           <button
                             onClick={(e) => { e.stopPropagation(); approveAdmin(n.adminId); }}
@@ -239,12 +218,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
           </Link>
         )}
 
-        {currentUser?.status !== 'pending' && (
-          <Link to='/despesas' className={isActive('/despesas') ? styles.active : ''} title={isCollapsed ? "Despesas" : ""}>
-            <FaFileInvoiceDollar />
-            {!isCollapsed && "Minhas Despesas"}
-          </Link>
-        )}
 
         <Link to='/ajuda' className={isActive('/ajuda') ? styles.active : ''} title={isCollapsed ? "Ajuda" : ""}>
           <BsInfoCircle />

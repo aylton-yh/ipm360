@@ -403,40 +403,6 @@
     font-size: 0.95rem;
 }
 
-.testimonials {
-    padding: 8rem 2rem;
-    background-color: #f8fafc;
-}
-
-.testimonialsGrid {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 3rem;
-}
-
-.testimonialCard {
-    background: white;
-    padding: 3.5rem;
-    border-radius: 2rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f5f9;
-}
-
-.testimonialAvatar {
-    font-size: 3rem;
-    margin-bottom: 1.5rem;
-}
-
-.testimonialText {
-    font-style: italic;
-    color: #475569;
-    font-size: 1.25rem;
-    line-height: 1.8;
-    margin-bottom: 2rem;
-}
-
 .footer {
     background-color: #064e3b;
     color: white;
@@ -458,6 +424,160 @@
     padding-top: 2rem;
 }
 
+/* Merged Sections from User Landing */
+
+.insightsSection {
+    padding: 6rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #ffffff;
+}
+
+.sectionHeader {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.sectionHeader h2 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.textBlue {
+    color: #2563eb;
+}
+
+.insightsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2.5rem;
+}
+
+.insightCard {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.3s;
+}
+
+.insightCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.insightIcon {
+    font-size: 2.5rem;
+    color: #2563eb;
+    margin-bottom: 1.5rem;
+}
+
+.chartMini {
+    height: 250px;
+    margin-top: 2rem;
+}
+
+.motivationSection {
+    padding: 8rem 2rem;
+    background-color: #f8fafc;
+}
+
+.motivationContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.motiTitle {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 2rem;
+}
+
+.motiList {
+    list-style: none;
+    padding: 0;
+}
+
+.motiList li {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.motiIcon {
+    font-size: 1.75rem;
+    color: #2563eb;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.motiList h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.motiList p {
+    color: #475569;
+    line-height: 1.6;
+}
+
+.suggestionsCard {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    padding: 3.5rem;
+    border-radius: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+}
+
+.suggestionsCard h3 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 800;
+}
+
+.sugList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sugItem {
+    display: flex;
+    gap: 1.25rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    backdrop-filter: blur(4px);
+}
+
+.sugIcon {
+    color: #93c5fd;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.sugItem strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.sugItem p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
 @media (max-width: 1024px) {
     .rankingContainer {
         grid-template-columns: 1fr;
@@ -467,12 +587,8 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .featuresGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .heroTitle {
-        font-size: 3rem;
+    .motivationContainer {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -485,12 +601,8 @@
         grid-template-columns: 1fr;
     }
 
-    .testimonialsGrid {
+    .insightsGrid {
         grid-template-columns: 1fr;
-    }
-
-    .header {
-        padding: 1rem 2rem;
     }
 
     .heroTitle {

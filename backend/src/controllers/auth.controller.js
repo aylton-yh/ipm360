@@ -44,6 +44,7 @@ exports.login = async (req, res) => {
         res.json({
             access_token: token,
             token_type: 'bearer',
+            user_id: user.id,
             user_name: user.username,
             user_role: user.role
         });
@@ -57,13 +58,40 @@ exports.login = async (req, res) => {
 // Obter dados do usuário logado (me)
 exports.getMe = async (req, res) => {
     try {
-        // req.user vem do authMiddleware
-        res.json({
-            id: req.user.id,
-            username: req.user.username,
-            role: req.user.role
-        });
+        const { id, role } = req.user;
+        let query = '';
+        let params = [id];
+
+        if (role === 'admin' || role === 'global_admin') {
+            query = `
+                SELECT 
+                    a.id_cadastro_admin as id, a.username, a.email, a.role,
+                    p.nome_completo, p.foto, p.telefone, p.endereco, p.sobre
+                FROM cadastro_admin a
+                LEFT JOIN admin_perfil p ON a.id_cadastro_admin = p.id_cadastro_admin
+                WHERE a.id_cadastro_admin = ?`;
+        } else {
+            query = `
+                SELECT 
+                    u.id_cadastro_usuario as id, u.username, u.email, u.role,
+                    p.nome_completo, p.foto, p.telefone, p.endereco, p.sobre,
+                    f.bi, f.data_admissao as admissao,
+                    f.genero as sexo,
+                    f.codigo_identificacao as numeroAgente,
+                    c.nome_seccao_cargo as cargo
+                FROM cadastro_usuario u
+                LEFT JOIN usuario_perfil p ON u.id_cadastro_usuario = p.id_cadastro_usuario
+                LEFT JOIN funcionario f ON p.id_funcionario = f.id_funcionario
+                LEFT JOIN cargo c ON f.id_cargo = c.id_seccao_cargo
+                WHERE u.id_cadastro_usuario = ?`;
+        }
+
+        const [rows] = await db.query(query, params);
+        if (rows.length === 0) return res.status(404).json({ detail: 'Usuário não encontrado' });
+        
+        res.json(rows[0]);
     } catch (error) {
+        console.error('Erro ao buscar perfil:', error);
         res.status(500).json({ detail: 'Erro ao buscar dados do usuário' });
     }
 };

@@ -105,10 +105,15 @@ export const ChatProvider = ({ children }) => {
 
         const fetchHistory = async () => {
             try {
-                const response = await fetch(getChatUrl('/chat/history'));
+                const token = localStorage.getItem('ipm360_token');
+                const response = await fetch(getChatUrl('/api/chat/history'), {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (response.ok) {
-                    const history = await response.json();
-                    setMessages(history);
+                    const historyData = await response.json();
+                    setMessages(Array.isArray(historyData) ? historyData : []);
                 } else {
                     const saved = localStorage.getItem('ipm360_chat_messages');
                     if (saved) setMessages(JSON.parse(saved));
@@ -158,7 +163,7 @@ export const ChatProvider = ({ children }) => {
         const now = new Date().toISOString();
         setLastSeen(now);
         localStorage.setItem(`ipm360_chat_last_seen_${currentUser.id}`, now);
-
+ 
         setMessages(prev => {
             const hasUnread = prev.some(msg => msg.senderId !== currentUser.id && msg.status !== 'read');
             if (!hasUnread) return prev;
@@ -172,18 +177,19 @@ export const ChatProvider = ({ children }) => {
     }, [currentUser?.id]);
 
     const unreadCount = useMemo(() => {
-        if (!currentUser) return 0;
+        if (!currentUser?.id) return 0;
         return messages.filter(msg =>
             msg.senderId !== currentUser.id &&
             new Date(msg.timestamp) > new Date(lastSeen)
         ).length;
-    }, [messages, lastSeen, currentUser]);
+    }, [messages, lastSeen, currentUser?.id]);
 
     const sendMessage = React.useCallback((content, type = 'text', metadata = {}) => {
         if (!content && type === 'text') return;
         if (!currentUser) return;
 
         const messageData = {
+            sender_id: currentUser.id,
             sender_name: currentUser.nome || currentUser.username,
             sender_role: currentUser.role,
             sender_photo: currentUser.foto || currentUser.avatar,

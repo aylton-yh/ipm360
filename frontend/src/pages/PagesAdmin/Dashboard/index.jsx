@@ -131,7 +131,7 @@ export default function Dashboard() {
           recentActivities.map((activity, idx) => (
             <div key={idx} className={styles.activityCard}>
               <div className={styles.avatarSmall}>
-                {activity.funcionario.charAt(0)}
+                {(activity.funcionario || activity.funcionario_nome || 'U').charAt(0)}
               </div>
               <div className={styles.activityInfo}>
                 <h4>{activity.funcionario}</h4>

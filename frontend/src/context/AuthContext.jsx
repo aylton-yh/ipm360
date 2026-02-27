@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const DEFAULT_ROLES = [
     {
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
         const saved = localStorage.getItem('ipm360_users');
         const users = saved ? JSON.parse(saved) : [];
         // Filtro de segurança: Garantir que nenhum perfil de admin apareça como colaborador
-        return users.filter(u => u.username !== 'Aylton Dinis' && u.nome !== 'Aylton Dinis' && u.role === 'employee');
+        return users.filter(u => u.username !== 'Aylton Dinis' && u.nome !== 'Aylton Dinis' && (u.role === 'employee' || u.role === 'colaborador'));
     });
 
     // Estado Global de Processamento (Logout, Delete Account, etc)
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }) => {
                 const loggedUser = {
                     username: data.user_name,
                     role: data.user_role,
-                    id: data.user_name, // Temporário, idealmente usar ID real do DB
+                    id: data.user_id || data.user_name,
                     status: 'approved'
                 };
 
@@ -242,7 +242,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        // Limpa tudo imediatamente para evitar inconsistências
         setCurrentUser(null);
+        setProcessingAction(null);
+        localStorage.removeItem('ipm360_token');
+        localStorage.removeItem('ipm360_current_user');
     };
 
     const registerAdmin = async (userData) => {
@@ -369,7 +373,7 @@ export const AuthProvider = ({ children }) => {
         const updated = { ...currentUser, ...newData };
         setCurrentUser(updated);
 
-        if (updated.role === 'employee') {
+        if (updated.role === 'employee' || updated.role === 'colaborador') {
             setAllUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
         } else {
             setAllAdmins(prev => prev.map(a => a.id === currentUser.id ? updated : a));
@@ -495,46 +499,48 @@ export const AuthProvider = ({ children }) => {
     const hasPermission = (module, action) => {
         if (!currentUser) return false;
         if (currentUser.role === 'global_admin') return true;
-
+ 
         // Encontrar o perfil do usuário
         const userRole = roles.find(r => r.nome === currentUser.role);
         if (!userRole) return false;
-
+ 
         return userRole.config[module]?.[action] || false;
     };
-
+ 
+    const value = {
+        currentUser,
+        allAdmins,
+        notifications,
+        login,
+        logout,
+        registerAdmin,
+        markNotificationAsRead,
+        clearNotifications,
+        approveAdmin,
+        rejectAdmin,
+        disableAdmin,
+        enableAdmin,
+        deleteAdmin,
+        adminHistory,
+        loginUser,
+        registerCollaborator,
+        updateCurrentUser,
+        deleteCurrentUser,
+        processingAction, // State exposto para o Layout renderizar a tela
+        setProcessingAction,
+        deleteAdminHistoryItem,
+        clearAdminHistory,
+        roles,
+        updateRole,
+        addRole,
+        deleteRole,
+        updateAdmin,
+        hasPermission,
+        changePassword
+    };
+ 
     return (
-        <AuthContext.Provider value={{
-            currentUser,
-            allAdmins,
-            notifications,
-            login,
-            logout,
-            registerAdmin,
-            markNotificationAsRead,
-            clearNotifications,
-            approveAdmin,
-            rejectAdmin,
-            disableAdmin,
-            enableAdmin,
-            deleteAdmin,
-            adminHistory,
-            loginUser,
-            registerCollaborator,
-            updateCurrentUser,
-            deleteCurrentUser,
-            processingAction, // State exposto para o Layout renderizar a tela
-            setProcessingAction,
-            deleteAdminHistoryItem,
-            clearAdminHistory,
-            roles,
-            updateRole,
-            addRole,
-            deleteRole,
-            updateAdmin,
-            hasPermission,
-            changePassword
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

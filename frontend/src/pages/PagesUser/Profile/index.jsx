@@ -19,12 +19,11 @@ export default function Profile() {
       if (currentUser) {
          setEditData({
             ...currentUser,
-            nome: currentUser.nome || '',
-            sobrenome: currentUser.sobrenome || '',
+            nome: currentUser.nome_completo || currentUser.nome || '',
             email: currentUser.email || '',
             telefone: currentUser.telefone || '',
             endereco: currentUser.endereco || '',
-            departamento: currentUser.dept || currentUser.departamento || '',
+            departamento: currentUser.departamento || currentUser.dept || '',
             cargo: currentUser.cargo || '',
             bi: currentUser.bi || '',
             admissao: currentUser.admissao || '',
