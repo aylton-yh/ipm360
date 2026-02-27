@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const DEFAULT_ROLES = [
     {
@@ -242,7 +242,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        // Limpa tudo imediatamente para evitar inconsistências
         setCurrentUser(null);
+        setProcessingAction(null);
+        localStorage.removeItem('ipm360_token');
+        localStorage.removeItem('ipm360_current_user');
     };
 
     const registerAdmin = async (userData) => {
@@ -495,46 +499,48 @@ export const AuthProvider = ({ children }) => {
     const hasPermission = (module, action) => {
         if (!currentUser) return false;
         if (currentUser.role === 'global_admin') return true;
-
+ 
         // Encontrar o perfil do usuário
         const userRole = roles.find(r => r.nome === currentUser.role);
         if (!userRole) return false;
-
+ 
         return userRole.config[module]?.[action] || false;
     };
-
+ 
+    const value = {
+        currentUser,
+        allAdmins,
+        notifications,
+        login,
+        logout,
+        registerAdmin,
+        markNotificationAsRead,
+        clearNotifications,
+        approveAdmin,
+        rejectAdmin,
+        disableAdmin,
+        enableAdmin,
+        deleteAdmin,
+        adminHistory,
+        loginUser,
+        registerCollaborator,
+        updateCurrentUser,
+        deleteCurrentUser,
+        processingAction, // State exposto para o Layout renderizar a tela
+        setProcessingAction,
+        deleteAdminHistoryItem,
+        clearAdminHistory,
+        roles,
+        updateRole,
+        addRole,
+        deleteRole,
+        updateAdmin,
+        hasPermission,
+        changePassword
+    };
+ 
     return (
-        <AuthContext.Provider value={{
-            currentUser,
-            allAdmins,
-            notifications,
-            login,
-            logout,
-            registerAdmin,
-            markNotificationAsRead,
-            clearNotifications,
-            approveAdmin,
-            rejectAdmin,
-            disableAdmin,
-            enableAdmin,
-            deleteAdmin,
-            adminHistory,
-            loginUser,
-            registerCollaborator,
-            updateCurrentUser,
-            deleteCurrentUser,
-            processingAction, // State exposto para o Layout renderizar a tela
-            setProcessingAction,
-            deleteAdminHistoryItem,
-            clearAdminHistory,
-            roles,
-            updateRole,
-            addRole,
-            deleteRole,
-            updateAdmin,
-            hasPermission,
-            changePassword
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

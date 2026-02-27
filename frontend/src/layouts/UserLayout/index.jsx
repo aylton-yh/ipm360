@@ -1,5 +1,5 @@
-import React from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import React, { useContext, useEffect } from 'react'
+import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { BiAlignMiddle, BiLineChart } from 'react-icons/bi'
 import { FaUserCircle, FaIdBadge, FaHistory } from 'react-icons/fa' // Importei FaIdBadge para logo
 import { AiTwotoneSetting } from 'react-icons/ai'
@@ -10,10 +10,10 @@ import styles from './UserLayout.module.css'
 
 import { AuthContext } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
-import { Navigate } from 'react-router-dom'
+import LoadingOverlay from '../../components/LoadingOverlay'
 
 export default function UserLayout() {
-  const { currentUser, logout, processingAction, setProcessingAction } = React.useContext(AuthContext);
+  const { currentUser, logout, processingAction, setProcessingAction } = useContext(AuthContext);
   const { unreadCount: chatUnreadCount } = useChat();
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,43 +22,27 @@ export default function UserLayout() {
   const handleLogout = (e) => {
     e.preventDefault();
     setProcessingAction('logout');
-    // Simula logout process
     setTimeout(() => {
       logout();
-      setProcessingAction(null);
-      navigate('/user/login');
-    }, 3000);
+      navigate('/login');
+    }, 2800); // 2.8s de animação premium
   };
+ 
+  // 1. Prioridade: Se estiver saindo, mostra APENAS o overlay (evita flickers e crashes de permissão)
+  if (processingAction === 'logout') {
+    return <LoadingOverlay message="Encerrando Sessão..." />;
+  }
+ 
+  // 2. Se não houver usuário, redireciona
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Se estiver processando Delete Account (controlado externamente ou aqui se movermos a lógica)
   // Mas o deleteAccount será chamado pelo Settings.
 
-  // Styles inline para o overlay (inspirado no LoginUser)
-  const overlayStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#f8fafc', // Cor de fundo suave do Login
-    zIndex: 9999,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: '"Inter", sans-serif'
-  };
 
-  const spinnerStyle = {
-    width: '50px',
-    height: '50px',
-    border: '4px solid rgba(37, 99, 235, 0.1)',
-    borderLeftColor: '#2563eb',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite'
-  };
-
-  React.useEffect(() => {
+  useEffect(() => {
     // Inject keyframes for spin if not present
     if (!document.getElementById('spin-style')) {
       const style = document.createElement('style');
@@ -71,7 +55,7 @@ export default function UserLayout() {
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Verificação rigorosa: Se for admin ou tiver cargo administrativo, redireciona para o Dashboard Admin
     const isAdmin = currentUser && (
       (currentUser.role === 'admin' || currentUser.role === 'global_admin')
@@ -99,37 +83,7 @@ export default function UserLayout() {
   return (
     <div className={styles.layout}>
       {/* GLOBAL PROCESSING OVERLAY */}
-      {processingAction && (
-        <div style={overlayStyle}>
-          {/* LOGOUT SCREEN */}
-          {processingAction === 'logout' && (
-            <>
-              <div className={styles.brand} style={{ marginBottom: '30px', transform: 'scale(1.2)' }}>
-                <div style={{ fontSize: '32px', color: '#2563eb', display: 'flex', justifyContent: 'center' }}><FaIdBadge /></div>
-              </div>
-              <div style={spinnerStyle}></div>
-              <h2 style={{ marginTop: '20px', color: '#1e293b', fontSize: '1.5rem' }}>Encerrando Sessão...</h2>
-              <p style={{ color: '#64748b', marginTop: '5px' }}>Até logo, {currentUser?.nome?.split(' ')[0]}!</p>
-            </>
-          )}
-
-          {/* DELETE ACCOUNT SCREEN */}
-          {processingAction === 'delete' && (
-            <>
-              <div style={{
-                width: '80px', height: '80px', borderRadius: '50%', background: '#fee2e2', color: '#ef4444',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', marginBottom: '20px',
-                animation: 'pulse-red 2s infinite'
-              }}>
-                <FaIdBadge />
-              </div>
-              <div style={{ ...spinnerStyle, borderColor: 'rgba(239, 68, 68, 0.1)', borderLeftColor: '#ef4444' }}></div>
-              <h2 style={{ marginTop: '20px', color: '#ef4444', fontSize: '1.5rem' }}>Eliminando Conta...</h2>
-              <p style={{ color: '#64748b', marginTop: '5px' }}>Todos os seus dados estão sendo apagados.</p>
-            </>
-          )}
-        </div>
-      )}
+      {processingAction === 'delete' && <LoadingOverlay message="Eliminando Conta..." />}
 
       {/* Navbar Superior - Hide when processing to avoid interactions? Or just overlay covers it. Overlay z-index 9999 covers it. */}
       <header className={styles.navbar}>

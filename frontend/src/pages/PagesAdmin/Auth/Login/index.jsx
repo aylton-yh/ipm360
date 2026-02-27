@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock } from 'react-icons/ai';
 import styles from './Login.module.css';
 import logoImage from '../../../../assets/images/LogoSistema.jpeg';
-
+import LoadingOverlay from '../../../../components/LoadingOverlay';
 import { AuthContext } from '../../../../context/AuthContext';
 
 export default function Login() {
-  const { login } = React.useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -52,23 +52,7 @@ export default function Login() {
   };
 
   if (isLoading) {
-    return (
-      <div className={styles.loadingOverlay}>
-        <div className={styles.cubeGrid}>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-        </div>
-
-        <div className={styles.loadingText}>Iniciando Sistema...</div>
-      </div>
-    );
+    return <LoadingOverlay message="Iniciando Sistema..." />;
   }
 
   return (

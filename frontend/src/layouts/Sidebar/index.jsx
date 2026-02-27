@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BiAlignMiddle } from 'react-icons/bi'
 import { AiOutlineUserAdd, AiTwotoneSetting } from 'react-icons/ai'
@@ -14,14 +14,13 @@ import styles from './Sidebar.module.css'
 import logoImg from '../../assets/images/LogoSistema.jpeg'
 
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
-  const { currentUser, notifications, markNotificationAsRead, clearNotifications, approveAdmin, rejectAdmin, hasPermission } = React.useContext(AuthContext);
+  const { currentUser, logout, notifications, markNotificationAsRead, clearNotifications, approveAdmin, rejectAdmin, hasPermission, setProcessingAction } = useContext(AuthContext);
   const { unreadCount: chatUnreadCount } = useChat();
   const location = useLocation();
   const navigate = useNavigate();
   const [funcionariosOpen, setFuncionariosOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
+ 
   const unreadCount = notifications.filter(n => !n.read && (!n.userId || n.userId === currentUser?.id)).length;
   const myNotifications = notifications.filter(n => !n.userId || n.userId === currentUser?.id);
 
@@ -29,7 +28,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
 
   // Verifica se alguma rota filha está ativa para manter o menu aberto (opcional)
   // Mas o user pode querer controle manual. Vou deixar manual e abrir se o path bater.
-  React.useEffect(() => {
+  useEffect(() => {
     if (location.pathname.includes('/cadastrar-funcionario') || location.pathname.includes('/funcionarios')) {
       setFuncionariosOpen(true);
     }
@@ -38,34 +37,15 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const toggleFuncionarios = () => setFuncionariosOpen(!funcionariosOpen);
 
   const handleLogout = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simula o tempo de processamento do logout
+    if (e) e.preventDefault();
+    setProcessingAction('logout');
+    
     setTimeout(() => {
+      logout();
       navigate('/login');
-    }, 3000);
+    }, 2800); // 2.8s de animação premium
   };
 
-  if (isLoading) {
-    return (
-      <div className={styles.loadingOverlay}>
-        <div className={styles.cubeGrid}>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-          <div className={styles.cube}></div>
-        </div>
-
-        <div className={styles.loadingText}>Encerrando Sessão...</div>
-      </div>
-    );
-  }
 
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -107,7 +87,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
                       <div className={styles.notifContent} onClick={() => markNotificationAsRead(n.id)}>
                         {n.message}
                       </div>
-                      {n.type === 'new_registration' && currentUser.role === 'global_admin' && (
+                      {n.type === 'new_registration' && currentUser?.role === 'global_admin' && (
                         <div className={styles.notifActions}>
                           <button
                             onClick={(e) => { e.stopPropagation(); approveAdmin(n.adminId); }}

@@ -68,22 +68,21 @@ exports.getMe = async (req, res) => {
                     a.id_cadastro_admin as id, a.username, a.email, a.role,
                     p.nome_completo, p.foto, p.telefone, p.endereco, p.sobre
                 FROM cadastro_admin a
-                LEFT JOIN usuario_perfil p ON a.id_cadastro_admin = p.id_cadastro_admin
+                LEFT JOIN admin_perfil p ON a.id_cadastro_admin = p.id_cadastro_admin
                 WHERE a.id_cadastro_admin = ?`;
         } else {
             query = `
                 SELECT 
                     u.id_cadastro_usuario as id, u.username, u.email, u.role,
                     p.nome_completo, p.foto, p.telefone, p.endereco, p.sobre,
-                    f.bi, f.data_nascimento as nascimento, f.data_admissao as admissao,
-                    f.genero as sexo, f.estado_civil as estadoCivil,
-                    f.num_agente as numeroAgente,
-                    s.nome_seccao as cargo, d.nome_departamento as departamento
+                    f.bi, f.data_admissao as admissao,
+                    f.genero as sexo,
+                    f.codigo_identificacao as numeroAgente,
+                    c.nome_seccao_cargo as cargo
                 FROM cadastro_usuario u
                 LEFT JOIN usuario_perfil p ON u.id_cadastro_usuario = p.id_cadastro_usuario
                 LEFT JOIN funcionario f ON p.id_funcionario = f.id_funcionario
-                LEFT JOIN seccao s ON f.id_cargo = s.id_seccao
-                LEFT JOIN departamento d ON s.id_departamento = d.id_departamento
+                LEFT JOIN cargo c ON f.id_cargo = c.id_seccao_cargo
                 WHERE u.id_cadastro_usuario = ?`;
         }
 
