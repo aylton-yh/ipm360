@@ -1,6 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock } from 'react-icons/ai';
+import { FaArrowLeft, FaExclamationCircle, FaWhatsapp } from 'react-icons/fa';
 import styles from './Login.module.css';
 import logoImage from '../../../../assets/images/LogoSistema.jpeg';
 import LoadingOverlay from '../../../../components/LoadingOverlay';
@@ -13,6 +15,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
   const navigate = useNavigate();
 
   const togglePassword = () => setShowPassword(!showPassword);
@@ -21,7 +25,6 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    // Validação
     if (!username || !password) {
       setError('Por favor, preencha todos os campos.');
       return;
@@ -29,15 +32,23 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const result = await login(username, password);
+      const result = await login(username, password, rememberMe);
 
       if (result.success) {
-        // Redirecionar baseando-se na role
+        if (rememberMe) {
+          localStorage.setItem('remembered_user', username);
+        } else {
+          localStorage.removeItem('remembered_user');
+        }
+
         setTimeout(() => {
-          if (result.role === 'employee' || result.role === 'colaborador') {
-            navigate('/user/home');
-          } else {
+          const role = (result.role || '').toLowerCase().trim();
+          const isAdmin = role === 'global_admin' || role === 'gestor';
+
+          if (isAdmin) {
             navigate('/dashboard');
+          } else {
+            navigate('/user/home');
           }
         }, 1500);
       } else {
@@ -46,57 +57,155 @@ export default function Login() {
       }
     } catch (err) {
       setIsLoading(false);
-      setError('Ocorreu um erro ao tentar entrar. Tente novamente.');
+      setError('Ocorreu um erro técnico. Tente novamente.');
       console.error(err);
     }
   };
 
+  const handleContactAdmin = () => {
+    const phoneNumber = "944436342";
+    const message = encodeURIComponent("Olá, preciso de ajuda para recuperar minha senha no sistema IPM 360.");
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+  };
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('remembered_user');
+    if (savedUser) {
+      setUsername(savedUser);
+      setRememberMe(true);
+    }
+  }, []);
+
   if (isLoading) {
-    return <LoadingOverlay message="Iniciando Sistema..." />;
+    return <LoadingOverlay message="Sincronizando Dados..." />;
   }
 
   return (
     <div className={styles.container}>
-      <div className={styles.overlay}></div>
-      <div className={styles.card}>
+      {/* Modal de Recuperação de Senha */}
+      <AnimatePresence>
+        {showRecoveryModal && (
+          <motion.div
+            className={styles.modalOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ zIndex: 9999 }}
+          >
+            <motion.div
+              className={styles.modal}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <h3>Esqueceu sua senha?</h3>
+              <p>Por questões de segurança, a recuperação de senha deve ser solicitada diretamente ao administrador do sistema.</p>
+
+              <button
+                className={styles.contactBtn}
+                onClick={handleContactAdmin}
+              >
+                <FaWhatsapp size={20} />
+                Contactar o Administrador
+              </button>
+
+              <button
+                className={styles.closeModal}
+                onClick={() => setShowRecoveryModal(false)}
+              >
+                Fechar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        className={styles.meshGradient}
+        animate={{
+          backgroundPosition: ['0% 0%', '100% 100%', '0% 100%', '100% 0%', '0% 0%'],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      />
+
+      <motion.div
+        className={styles.card}
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.8, cubicBezier: [0.16, 1, 0.3, 1] }}
+      >
+        {/* Lado Esquerdo - Logo Imersiva */}
         <div className={styles.leftSide}>
-          <div className={styles.logoArea}>
-            <img src={logoImage} alt="IPM 360 Logo" className={styles.logo} />
-            <h1>Bem-vindo de volta!</h1>
-            <p>Acesse sua conta para gerenciar avaliações e desempenho.</p>
-          </div>
+          <motion.div
+            className={styles.logoAreaFull}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+          >
+            <img src={logoImage} alt="IPM 360 Logo" className={styles.logoImersive} />
+          </motion.div>
         </div>
 
+        {/* Lado Direito - Formulário & Textos */}
         <div className={styles.rightSide}>
           <div className={styles.formContent}>
-            <h2>Login</h2>
-            <p className={styles.subtitle}>Entre com suas credenciais</p>
+            <motion.div
+              className={styles.textRight}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <h2>Portal de Acesso</h2>
+              <p className={styles.slogan}>Sua plataforma inteligente para gestão de pessoas e performance.</p>
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
+              <div className={styles.dividerCenter}></div>
 
-            <form onSubmit={handleLogin}>
+              <p className={styles.subtitleCenter}>Identifique-se para continuar</p>
+            </motion.div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  className={styles.errorMessage}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <FaExclamationCircle /> {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.form
+              onSubmit={handleLogin}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               <div className={styles.inputGroup}>
-                <label>Usuário</label>
+                <label>Usuário ou Email</label>
                 <div className={styles.inputWrapper}>
                   <AiOutlineUser className={styles.inputIcon} />
                   <input
                     type="text"
-                    placeholder="Ex: admin"
+                    placeholder="Nome de utilizador"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    autoComplete="username"
                   />
                 </div>
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Senha</label>
+                <label>Palavra-passe</label>
                 <div className={styles.inputWrapper}>
                   <AiOutlineLock className={styles.inputIcon} />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Sua senha"
+                    placeholder="Sua senha secreta"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                   />
                   <button type="button" className={styles.eyeBtn} onClick={togglePassword}>
                     {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -105,22 +214,47 @@ export default function Login() {
               </div>
 
               <div className={styles.actions}>
-                <div className={styles.remember}>
-                  <input type="checkbox" id="remember" />
-                  <label htmlFor="remember">Lembrar de mim</label>
-                </div>
-                <a href="#" className={styles.forgot}>Esqueceu a senha?</a>
+                <label className={styles.remember}>
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span>Manter conectado</span>
+                </label>
+                <button
+                  type="button"
+                  className={styles.forgotBtn}
+                  onClick={() => setShowRecoveryModal(true)}
+                >
+                  Recuperar senha
+                </button>
               </div>
 
-              <button type="submit" className={styles.loginBtn}>Entrar</button>
-            </form>
+              <motion.button
+                type="submit"
+                className={styles.loginBtn}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Entrar no Sistema
+              </motion.button>
+            </motion.form>
 
-            <div className={styles.footer}>
-              <Link to="/" style={{ textDecoration: 'none', color: '#64748b', fontWeight: '500' }}>← Voltar para Início</Link>
-            </div>
+            <motion.div
+              className={styles.footer}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
+              <Link to="/" className={styles.backLink}>
+                <FaArrowLeft /> Voltar para o início
+              </Link>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

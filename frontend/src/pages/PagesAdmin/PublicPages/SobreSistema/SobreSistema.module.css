@@ -1,0 +1,319 @@
+.pageContainer {
+    padding-bottom: 5rem;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+.aboutSection {
+    padding: 2rem;
+    position: relative;
+}
+
+.aboutContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.aboutText {
+    text-align: center;
+}
+
+.aboutTitle {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin-bottom: 4rem;
+}
+
+.highlight {
+    background: linear-gradient(120deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    position: relative;
+}
+
+.aboutContentGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    text-align: left;
+    margin-bottom: 4rem;
+}
+
+.aboutParagraphCard {
+    background: var(--bg-tertiary);
+    padding: 3rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.aboutParagraphCard:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-premium);
+    background: linear-gradient(145deg, var(--bg-tertiary), rgba(16, 185, 129, 0.05));
+}
+
+.aboutStats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.aboutStatItemGlass {
+    background: rgba(var(--bg-secondary-rgb, 15, 23, 42), 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    width: 250px;
+    text-align: center;
+}
+
+.statGlassInner strong {
+    display: block;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.statGlassInner span {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.motivationSection {
+    padding: 6rem 2rem;
+    background-color: var(--bg-primary);
+}
+
+.motivationContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+}
+
+.motiTitle {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin-bottom: 3rem;
+    line-height: 1.2;
+}
+
+.motiList {
+    list-style: none;
+    padding: 0;
+}
+
+.motiList li {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.motiList li:hover {
+    transform: translateX(10px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-light);
+}
+
+.motiIcon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.motiList h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.motiList p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.suggestionsCard {
+    background: linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+    color: white;
+    padding: 3.5rem;
+    border-radius: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.suggestionsCard h3 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 800;
+}
+
+.sugList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sugItem {
+    display: flex;
+    gap: 1.25rem;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.3s;
+}
+
+.sugItem:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.sugIcon {
+    color: #6ee7b7;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.sugItem strong {
+    display: block;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.sugItem p {
+    font-size: 0.95rem;
+    opacity: 0.85;
+    line-height: 1.6;
+}
+
+.methodologySection {
+    padding: 6rem 2rem;
+    background: rgba(15, 23, 42, 0.4);
+    margin: 4rem 0;
+}
+
+.sectionTitleCenter {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 4rem;
+    color: var(--text-primary);
+}
+
+.methodologyGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.methodologyCard {
+    background: var(--bg-tertiary);
+    padding: 3rem 2rem;
+    border-radius: 2rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s ease;
+}
+
+.methodologyCard:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.methIcon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.methodologyCard h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.methodologyCard p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.visionSection {
+    padding: 8rem 2rem;
+    text-align: center;
+}
+
+.visionContainer {
+    max-width: 900px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    padding: 4rem;
+    border-radius: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.visionContent h3 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 800;
+}
+
+.visionContent p {
+    font-size: 1.2rem;
+    line-height: 2;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 968px) {
+    .methodologyGrid {
+        grid-template-columns: 1fr;
+    }
+    .aboutContentGrid, .motivationContainer {
+        grid-template-columns: 1fr;
+    }
+    .aboutTitle {
+        font-size: 2.5rem;
+    }
+}
+
+/* Novo Cabeçalho da Página */
+.pageHeader {
+    text-align: center;
+    padding: 12rem 2rem 5rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+}
+
+.pageHeader h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.pageHeader p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+}

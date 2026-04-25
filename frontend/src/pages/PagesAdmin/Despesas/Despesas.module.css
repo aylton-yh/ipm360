@@ -1,12 +1,10 @@
 .container {
-    padding: 20px;
+    padding: 0;
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
+    display: none;
+    /* Using global page-header */
 }
 
 .titleSection h1 {
@@ -74,12 +72,44 @@
     overflow: hidden;
 }
 
-.tableHeader {
-    padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
+.toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.searchWrapper {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.searchWrapper input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    font-size: 14px;
+}
+
+.headerActions {
+    display: flex;
+    gap: 12px;
 }
 
 .tableHeader h2 {

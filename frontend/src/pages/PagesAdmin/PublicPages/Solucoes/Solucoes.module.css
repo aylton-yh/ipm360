@@ -1,0 +1,109 @@
+.pageContainer {
+    padding-bottom: 5rem;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+.features {
+    padding: 2rem;
+}
+
+.featuresTitle {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 5rem;
+    color: var(--text-primary);
+}
+
+.highlight {
+    background: linear-gradient(120deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    position: relative;
+}
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.featureCard {
+    background-color: var(--bg-secondary);
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.featureCard:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.1);
+    transform: translateY(-10px);
+}
+
+.featureIconWrap {
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.15) 100%);
+    border-radius: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s;
+}
+
+.featureCard:hover .featureIconWrap {
+    transform: scale(1.1) rotate(5deg);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+}
+
+.featureIcon {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    transition: color 0.3s;
+}
+
+.featureName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.featureDesc {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Novo Cabeçalho da Página */
+.pageHeader {
+    text-align: center;
+    padding: 12rem 2rem 5rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+}
+
+.pageHeader h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.pageHeader p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+}

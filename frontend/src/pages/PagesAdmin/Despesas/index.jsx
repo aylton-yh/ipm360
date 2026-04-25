@@ -64,13 +64,13 @@ export default function Despesas() {
     };
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <div className={styles.titleSection}>
-                    <h1>Minhas Despesas</h1>
-                    <p>Gestão financeira e controle de gastos da organização</p>
+        <div className="page-container">
+            <div className="page-header">
+                <div>
+                    <h1 className="page-title">Minhas Despesas</h1>
+                    <p style={{ color: '#64748b', marginTop: '5px' }}>Gestão financeira e controle de gastos da organização</p>
                 </div>
-            </header>
+            </div>
 
             <div className={styles.statsGrid}>
                 <div className={styles.statCard}>
@@ -102,11 +102,20 @@ export default function Despesas() {
                 </div>
             </div>
 
+            <div className={styles.toolbar}>
+                <div className={styles.searchWrapper}>
+                    <FaFilter className={styles.searchIcon} />
+                    <input type="text" placeholder="Filtrar despesas..." />
+                </div>
+                <div className={styles.headerActions}>
+                    {/* Primary action is in the form card on the right for this screen */}
+                </div>
+            </div>
+
             <div className={styles.mainContent}>
                 <div className={styles.tableCard}>
                     <div className={styles.tableHeader}>
                         <h2>Histórico de Despesas</h2>
-                        <button className={styles.actionBtn}><FaFilter /> Filtrar</button>
                     </div>
                     <div className={styles.tableWrapper}>
                         <table className={styles.table}>
@@ -151,7 +160,7 @@ export default function Despesas() {
                 </div>
 
                 <div className={styles.formCard}>
-                    <h2>Nova Despesa</h2>
+                    <h2>Adicionar</h2>
                     <form onSubmit={handleSubmit}>
                         <div className={styles.formGroup}>
                             <label>Categoria *</label>
@@ -180,7 +189,7 @@ export default function Despesas() {
                             <textarea rows="3" value={formData.descricao} onChange={e => setFormData({ ...formData, descricao: e.target.value })} placeholder="Detalhes da despesa..."></textarea>
                         </div>
                         <button type="submit" className={styles.submitBtn}>
-                            <FaPlus /> Registrar Despesa
+                            <FaPlus /> Adicionar
                         </button>
                     </form>
                 </div>

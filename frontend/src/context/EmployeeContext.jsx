@@ -7,7 +7,7 @@ export const EmployeeProvider = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
 
   const getHeaders = (contentType = 'application/json') => {
-    const token = localStorage.getItem('ipm360_token');
+    const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
     const headers = {};
     if (contentType) headers['Content-Type'] = contentType;
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -25,8 +25,32 @@ export const EmployeeProvider = ({ children }) => {
   const [employees, setEmployees] = useState([]);
   const [history, setHistory] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+
+  const removeHistoryItem = async (id) => {
+    try {
+      const response = await fetch(getApiUrl(`/api/evaluations/history/${id}`), {
+        method: 'DELETE',
+        headers: getHeaders(null)
+      });
+      if (response.ok) {
+        await fetchData();
+        return { success: true };
+      }
+      return { success: false, message: 'Erro ao eliminar registro' };
+    } catch (e) {
+      console.error("Erro ao remover item do histórico:", e);
+      return { success: false, message: 'Erro de conexão' };
+    }
+  };
 
   const fetchData = async () => {
+    const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+    if (!token) {
+      console.log("Sem token, ignorando fetch (usuário não logado)");
+      return;
+    }
+
     try {
       // 1. Fetch Employees
       const empRes = await fetch(getApiUrl('/api/funcionarios'), { headers: getHeaders(null) });
@@ -44,6 +68,7 @@ export const EmployeeProvider = ({ children }) => {
             dept: e.dept_nome,
             num_agente: e.num_agente,
             cargo: e.cargo_nome,
+            cargoId: e.id_cargo,
             admissao: e.data_admissao,
             sexo: e.genero,
             estadoCivil: e.estado_civil,
@@ -79,6 +104,13 @@ export const EmployeeProvider = ({ children }) => {
         })));
       }
 
+      // 4. Fetch Expenses
+      const expenseRes = await fetch(getApiUrl('/api/expenses'), { headers: getHeaders(null) });
+      if (expenseRes.ok) {
+        const expenseData = await expenseRes.json();
+        setExpenses(Array.isArray(expenseData) ? expenseData : []);
+      }
+
     } catch (e) {
       console.error("Erro ao carregar dados do servidor:", e);
     }
@@ -97,7 +129,7 @@ export const EmployeeProvider = ({ children }) => {
           nome_completo: newEmployee.nome,
           email: newEmployee.email,
           telefone: newEmployee.telefone,
-          id_cargo: newEmployee.cargoId || 1,
+          id_cargo: newEmployee.cargoId || null,
           genero: newEmployee.sexo,
           endereco: newEmployee.endereco,
           bi: newEmployee.bi,
@@ -127,24 +159,38 @@ export const EmployeeProvider = ({ children }) => {
 
   const updateEmployee = async (id, updatedData) => {
     try {
+      const payload = {};
+      
+      // Mapeamento de De -> Para (Frontend -> Backend/DB)
+      const fieldMap = {
+        nome: 'nome_completo',
+        email: 'email',
+        telefone: 'telefone',
+        cargoId: 'id_cargo',
+        sexo: 'genero',
+        endereco: 'endereco',
+        bi: 'bi',
+        nascimento: 'data_nascimento',
+        estadoCivil: 'estado_civil',
+        admissao: 'data_admissao',
+        dataAdmissao: 'data_admissao',
+        num_agente: 'num_agente',
+        status: 'status_funcionario',
+        foto: 'foto',
+        username: 'username',
+        password: 'password'
+      };
+
+      Object.keys(fieldMap).forEach(key => {
+        if (updatedData[key] !== undefined) {
+          payload[fieldMap[key]] = updatedData[key];
+        }
+      });
+
       const response = await fetch(getApiUrl(`/api/funcionarios/${id}`), {
         method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify({
-          nome_completo: updatedData.nome,
-          email: updatedData.email,
-          telefone: updatedData.telefone,
-          id_cargo: updatedData.cargoId || 1,
-          genero: updatedData.sexo,
-          endereco: updatedData.endereco,
-          bi: updatedData.bi,
-          data_nascimento: updatedData.nascimento,
-          estado_civil: updatedData.estadoCivil,
-          data_admissao: updatedData.dataAdmissao,
-          num_agente: updatedData.num_agente,
-          status_funcionario: updatedData.status,
-          foto: updatedData.foto
-        })
+        body: JSON.stringify(payload)
       });
       if (response.ok) {
         await fetchData();
@@ -154,6 +200,25 @@ export const EmployeeProvider = ({ children }) => {
       return { success: false, message: err.error || err.detail || 'Erro ao atualizar' };
     } catch (e) {
       console.error("Erro ao atualizar funcionário:", e);
+      return { success: false, message: 'Erro de conexão' };
+    }
+  };
+
+  const promoteEmployee = async (id, id_cargo, motivo) => {
+    try {
+      const response = await fetch(getApiUrl(`/api/funcionarios/${id}/promote`), {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ id_cargo, motivo })
+      });
+      if (response.ok) {
+        await fetchData();
+        return { success: true };
+      }
+      const err = await response.json();
+      return { success: false, message: err.error || 'Erro ao processar promoção' };
+    } catch (e) {
+      console.error("Erro ao promover funcionário:", e);
       return { success: false, message: 'Erro de conexão' };
     }
   };
@@ -175,13 +240,13 @@ export const EmployeeProvider = ({ children }) => {
 
   const clearAllEmployees = async () => {
     if (window.confirm('Tem certeza que deseja apagar TODOS os funcionários do sistema?')) {
-        try {
-            // No backend, poderíamos ter uma rota DELETE massiva.
-            // Para segurança, vamos apagar um por um ou avisar.
-            alert('Funcionalidade de limpeza massiva requer privilégios de super-admin no banco de dados.');
-        } catch (e) {
-            console.error("Erro ao limpar funcionários:", e);
-        }
+      try {
+        // No backend, poderíamos ter uma rota DELETE massiva.
+        // Para segurança, vamos apagar um por um ou avisar.
+        alert('Funcionalidade de limpeza massiva requer privilégios de super-admin no banco de dados.');
+      } catch (e) {
+        console.error("Erro ao limpar funcionários:", e);
+      }
     }
   };
 
@@ -275,20 +340,81 @@ export const EmployeeProvider = ({ children }) => {
     setHistory(prev => [{ ...event, id }, ...prev]);
   };
 
-  const clearHistory = (silent = false) => {
+  const clearHistory = async (silent = false) => {
     if (silent || window.confirm('Tem certeza que deseja apagar TODO o histórico de eventos?')) {
-      setHistory([]);
-      localStorage.removeItem('ipm360_history');
-      if (!silent) alert('Histórico de eventos limpo!');
+      try {
+        const response = await fetch(getApiUrl('/api/evaluations/history/clear'), {
+          method: 'DELETE',
+          headers: getHeaders(null)
+        });
+        if (response.ok) {
+          await fetchData();
+          if (!silent) alert('Histórico de eventos limpo!');
+        }
+      } catch (e) {
+        console.error("Erro ao limpar histórico:", e);
+      }
     }
+  };
+
+  const addExpense = async (expense) => {
+    try {
+      const response = await fetch(getApiUrl('/api/expenses'), {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(expense)
+      });
+      if (response.ok) {
+        await fetchData();
+        return { success: true };
+      }
+    } catch (e) {
+      console.error("Erro ao adicionar despesa:", e);
+    }
+    return { success: false };
+  };
+
+  const updateExpense = async (id, updatedData) => {
+    try {
+      const response = await fetch(getApiUrl(`/api/expenses/${id}`), {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedData)
+      });
+      if (response.ok) {
+        await fetchData();
+        return { success: true };
+      }
+    } catch (e) {
+      console.error("Erro ao atualizar despesa:", e);
+    }
+    return { success: false };
+  };
+
+  const removeExpense = async (id) => {
+    try {
+      const response = await fetch(getApiUrl(`/api/expenses/${id}`), {
+        method: 'DELETE',
+        headers: getHeaders(null)
+      });
+      if (response.ok) {
+        await fetchData();
+        return { success: true };
+      }
+    } catch (e) {
+      console.error("Erro ao remover despesa:", e);
+    }
+    return { success: false };
   };
 
 
   return (
     <EmployeeContext.Provider value={{
-      employees, addEmployee, updateEmployee, removeEmployee, clearAllEmployees,
-      history, addHistoryEvent, clearHistory,
-      departments, addDepartment, updateDepartment, removeDepartment
+      employees, addEmployee, updateEmployee, promoteEmployee, removeEmployee, clearAllEmployees,
+      history, addHistoryEvent, clearHistory, removeHistoryItem,
+      departments, addDepartment, updateDepartment, removeDepartment,
+      expenses, addExpense, updateExpense, removeExpense,
+      getApiUrl
     }}>
       {children}
     </EmployeeContext.Provider>

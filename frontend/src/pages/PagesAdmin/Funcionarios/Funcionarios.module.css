@@ -1,9 +1,15 @@
 .toolbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
   flex-wrap: wrap;
   gap: 15px;
+  background: var(--bg-secondary);
+  padding: 15px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .searchWrapper {
@@ -59,8 +65,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .card {
@@ -103,6 +109,11 @@
   color: #b45309;
 }
 
+.suspenso {
+  background: #8b5cf6;
+  color: #5b21b6;
+}
+
 span.ativo {
   background: #ecfdf5;
 }
@@ -113,6 +124,10 @@ span.inativo {
 
 span.ferias {
   background: #fffbeb;
+}
+
+span.suspenso {
+  background: #f5f3ff;
 }
 
 [data-theme='dark'] span.ativo {
@@ -130,9 +145,14 @@ span.ferias {
   color: #fbbf24;
 }
 
+[data-theme='dark'] span.suspenso {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
 
 .cardInfo {
-  padding: 25px 25px 15px 25px;
+  padding: 15px 15px 10px 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -532,4 +552,138 @@ span.ferias {
 [data-theme='dark'] .clearBtn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
+}
+
+/* PERFORMANCE VIEW STYLES */
+.perfModalContent {
+  composes: modalContent;
+  max-width: 800px;
+}
+
+.perfHeader {
+  composes: modalHeader;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.perfHeader h2 {
+  color: white;
+  margin: 0;
+  font-size: 20px;
+}
+
+.perfBody {
+  padding: 30px 40px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.perfGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background: var(--bg-tertiary);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent-primary);
+  margin-bottom: 5px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.historyTitle {
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historyCard {
+  background: var(--bg-tertiary);
+  padding: 15px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: .2s;
+}
+
+.historyCard:hover {
+  border-color: var(--accent-primary);
+  transform: translateX(5px);
+}
+
+.histMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.histPeriod {
+  font-size: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.histDate {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.histScore {
+  text-align: right;
+}
+
+.scoreVal {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.scoreQuali {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.histFaltas {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 5px;
+  display: block;
+  font-weight: 600;
 }

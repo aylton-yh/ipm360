@@ -12,6 +12,7 @@ export default function Departamentos() {
   const [editingId, setEditingId] = useState(null);
 
   // Form State
+  const [searchTerm, setSearchTerm] = useState('');
   const [newDept, setNewDept] = useState({
     nome: '',
     head: '',
@@ -110,9 +111,13 @@ export default function Departamentos() {
   };
 
   const getStaffCount = (deptName) => {
-    // Conta funcionários ativos neste departamento
     return employees.filter(e => e.dept === deptName && e.status === 'Ativo').length;
   };
+
+  const filteredDepartments = departments.filter(dept =>
+    dept.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    dept.head.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="page-container" onClick={() => setMenuAberto(null)}>
@@ -121,15 +126,30 @@ export default function Departamentos() {
           <h1 className="page-title">Departamentos</h1>
           <p style={{ color: '#64748b' }}>Gestão estrutural da organização</p>
         </div>
-        {hasPermission('departamentos', 'Gerir') && (
-          <button className={styles.addButton} onClick={handleOpenModal}>
-            <FaPlus /> Novo Departamento
-          </button>
-        )}
+      </div>
+
+      <div className={styles.toolbar}>
+        <div className={styles.searchWrapper}>
+          <FaLayerGroup className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Buscar departamento..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.headerActions}>
+          {hasPermission('departamentos', 'Gerir') && (
+            <button className={styles.addButton} onClick={handleOpenModal}>
+              <FaPlus /> Adicionar
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={styles.grid}>
-        {departments.map(dept => (
+        {filteredDepartments.map(dept => (
           <div key={dept.id} className={`${styles.deptCard} ${styles[`border-${dept.color}`]} card-modern`}>
             <div className={styles.cardHeader}>
               <div className={`${styles.iconBox} ${styles[`bg-${dept.color}`]}`}>
@@ -170,7 +190,7 @@ export default function Departamentos() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span className={styles.label}>Equipe</span>
-                <p className={styles.value}>{getStaffCount(dept.nome)} Colaboradores</p>
+                <p className={styles.value}>{getStaffCount(dept.nome)} Funcionários</p>
               </div>
             </div>
 
@@ -195,7 +215,7 @@ export default function Departamentos() {
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{editingId ? 'Editar Departamento' : 'Novo Departamento'}</h2>
+              <h2>{editingId ? 'Editar' : 'Adicionar'}</h2>
               <button className={styles.closeBtn} onClick={() => setShowModal(false)}><FaTimes /></button>
             </div>
 
@@ -263,7 +283,7 @@ export default function Departamentos() {
 
             <div className={styles.modalFooter}>
               <button className={styles.btnSave} onClick={handleSave}>
-                <FaSave /> Salvar Departamento
+                <FaSave /> Salvar
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.warn(`[AUTH] Falha: Token não fornecido em ${req.method} ${req.originalUrl}`);
         return res.status(401).json({ detail: 'Token não fornecido ou inválido' });
     }
 
@@ -14,6 +15,7 @@ const authMiddleware = (req, res, next) => {
         req.user = decoded; // { id, username, role }
         next();
     } catch (error) {
+        console.error(`[AUTH] Falha de verificação em ${req.method} ${req.originalUrl}:`, error.message);
         return res.status(401).json({ detail: 'Token inválido ou expirado' });
     }
 };

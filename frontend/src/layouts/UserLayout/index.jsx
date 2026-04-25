@@ -1,46 +1,29 @@
 import React, { useContext, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { BiAlignMiddle, BiLineChart } from 'react-icons/bi'
-import { FaUserCircle, FaIdBadge, FaHistory } from 'react-icons/fa' // Importei FaIdBadge para logo
+import { FaUserCircle, FaHistory } from 'react-icons/fa'
 import { AiTwotoneSetting } from 'react-icons/ai'
 import { RiLogoutBoxRLine } from 'react-icons/ri'
 import { MdAssignment } from 'react-icons/md'
-import { FaRegCommentDots } from 'react-icons/fa' // Import icon for chat badge
+import { FaRegCommentDots } from 'react-icons/fa'
 import styles from './UserLayout.module.css'
+import logo from '../../assets/images/LogoSistema.jpeg'
 
 import { AuthContext } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import LoadingOverlay from '../../components/LoadingOverlay'
+import NotificationBell from '../../components/Notifications/NotificationBell'
+import { useState } from 'react';
+import ConfirmModal from '../../components/ConfirmModal'
 
 export default function UserLayout() {
   const { currentUser, logout, processingAction, setProcessingAction } = useContext(AuthContext);
   const { unreadCount: chatUnreadCount } = useChat();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const isActive = (path) => location.pathname === path || location.pathname === path + '/';
-
-  const handleLogout = (e) => {
-    e.preventDefault();
-    setProcessingAction('logout');
-    setTimeout(() => {
-      logout();
-      navigate('/login');
-    }, 2800); // 2.8s de animação premium
-  };
- 
-  // 1. Prioridade: Se estiver saindo, mostra APENAS o overlay (evita flickers e crashes de permissão)
-  if (processingAction === 'logout') {
-    return <LoadingOverlay message="Encerrando Sessão..." />;
-  }
- 
-  // 2. Se não houver usuário, redireciona
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Se estiver processando Delete Account (controlado externamente ou aqui se movermos a lógica)
-  // Mas o deleteAccount será chamado pelo Settings.
-
 
   useEffect(() => {
     // Inject keyframes for spin if not present
@@ -58,25 +41,51 @@ export default function UserLayout() {
   useEffect(() => {
     // Verificação rigorosa: Se for admin ou tiver cargo administrativo, redireciona para o Dashboard Admin
     const isAdmin = currentUser && (
-      (currentUser.role === 'admin' || currentUser.role === 'global_admin')
+      (currentUser.role === 'global_admin' || currentUser.role === 'gestor')
     );
 
     if (isAdmin) {
       navigate('/dashboard', { replace: true });
     }
 
-    // Se não houver ninguém logado, volta para a landing page do colaborador
+    // Se não houver ninguém logado, volta para a landing page do funcionário
     if (!currentUser) {
       navigate('/login', { replace: true });
     }
   }, [currentUser, navigate]);
 
-  // Bloqueio de renderização para admins nas telas de colaborador
-  const isAllowed = currentUser && (currentUser.role === 'employee' || currentUser.role === 'colaborador' || !currentUser.role?.includes('admin'));
+  const handleLogout = (e) => {
+    if (e) e.preventDefault();
+    setIsLogoutModalOpen(true);
+  };
 
-  if (!currentUser || !isAllowed || currentUser.cargo?.includes('Administrador')) {
+  const confirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    setProcessingAction('logout');
+    setTimeout(() => {
+      logout();
+      navigate('/login');
+    }, 2800); // 2.8s de animação premium
+  };
+
+  // 1. Prioridade: Se estiver saindo, mostra APENAS o overlay (evita flickers e crashes de permissão)
+  if (processingAction === 'logout') {
+    return <LoadingOverlay message="Encerrando Sessão..." />;
+  }
+
+  // 2. Se não houver usuário, redireciona
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Bloqueio de renderização para admins nas telas de funcionário
+  // Priorizamos o ROLE: Se for funcionario/employee, permite.
+  const role = (currentUser?.role || '').toLowerCase().trim();
+  const isAllowed = currentUser && (role === 'employee' || role === 'funcionario' || role === 'colaborador' || !role.includes('admin'));
+
+  if (!currentUser || !isAllowed) {
     return <div style={{ height: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#64748b' }}>Redirecionando...</div>
+      <div style={{ color: '#64748b' }}>Redirecionando para área permitida...</div>
     </div>;
   }
 
@@ -88,10 +97,28 @@ export default function UserLayout() {
       {/* Navbar Superior - Hide when processing to avoid interactions? Or just overlay covers it. Overlay z-index 9999 covers it. */}
       <header className={styles.navbar}>
         <div className={styles.brand}>
-          <div style={{ fontSize: '32px', color: '#2563eb' }}><FaIdBadge /></div>
+          <img src={logo} alt="Logo" className={styles.logoImg} />
           <div className={styles.logoText}>
             <h2>IPM360°</h2>
-            <span>Portal do Colaborador</span>
+            <div className={styles.sloganText}>
+              {"Monitorando Desempenhos e impulsionando Melhorias".split("").map((char, index) => (
+                <motion.span
+                  key={index}
+                  className={styles.char}
+                  animate={{
+                    opacity: [1, 0.5, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: index * 0.1
+                  }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </motion.span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -121,6 +148,9 @@ export default function UserLayout() {
           <Link to='/settings' className={`${styles.navLink} ${isActive('/settings') ? styles.active : ''}`}>
             <AiTwotoneSetting />Ajustes
           </Link>
+          <div className={styles.notificationWrapper}>
+            <NotificationBell />
+          </div>
           <a href="#" onClick={handleLogout} className={styles.logoutBtn}>
             <RiLogoutBoxRLine />Sair
           </a>
@@ -131,6 +161,14 @@ export default function UserLayout() {
       <main className={styles.content}>
         <Outlet />
       </main>
+
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        title="Sair da Conta"
+        message="Tem certeza de que deseja encerrar a sua sessão?"
+        onConfirm={confirmLogout}
+        onClose={() => setIsLogoutModalOpen(false)}
+      />
     </div>
   )
 }

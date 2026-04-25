@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaSearch, FaUserPlus, FaEllipsisV, FaEnvelope, FaPhone, FaEdit, FaTrash, FaExchangeAlt, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaUserPlus, FaEllipsisV, FaEnvelope, FaPhone, FaEdit, FaTrash, FaExchangeAlt, FaTimes, FaChartPie } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Funcionarios.module.css';
 import { EmployeeContext } from '../../../context/EmployeeContext';
 import { AuthContext } from '../../../context/AuthContext';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 export default function Funcionarios() {
   const navigate = useNavigate();
@@ -13,8 +14,11 @@ export default function Funcionarios() {
   const [filtroStatus, setFiltroStatus] = useState('');
   const [menuAberto, setMenuAberto] = useState(null); // ID do funcionário com menu aberto
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const { employees, departments, removeEmployee, updateEmployee, addHistoryEvent, clearAllEmployees } = useContext(EmployeeContext);
-  const { hasPermission } = useContext(AuthContext);
+  const [selectedPerfEmployee, setSelectedPerfEmployee] = useState(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [perfFilter, setPerfFilter] = useState('Todos');
+  const { employees, departments, removeEmployee, updateEmployee, addHistoryEvent, clearAllEmployees, history } = useContext(EmployeeContext);
+  const { hasPermission, getApiUrl } = useContext(AuthContext);
   const menuRef = useRef(null);
 
   // Auto-open profile if requested via navigation
@@ -63,27 +67,35 @@ export default function Funcionarios() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  const handleStatusChange = async (func, nextStatus) => {
+    const res = await updateEmployee(func.id, { ...func, status: nextStatus });
+    
+    if (res.success) {
+      addHistoryEvent({
+        data: new Date().toISOString(),
+        evento: 'Mudança de Status',
+        tipo: 'sistema',
+        funcionario: func.nome,
+        cargo: func.cargo,
+        dept: func.dept,
+        resultadoQuantitativo: '-',
+        resultadoQualitativo: nextStatus,
+        criterios: []
+      });
+      toast.success(`Status de ${func.nome} alterado para ${nextStatus}`);
+    } else {
+      toast.error('Erro ao alterar status: ' + res.message);
+    }
+
+    setMenuAberto(null);
+  };
+
   return (
     <div className="page-container" onClick={() => setMenuAberto(null)}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Funcionários</h1>
           <p style={{ color: '#64748b', marginTop: '5px' }}>Gerencie a equipe da sua empresa</p>
-        </div>
-        <div className={styles.headerActions}>
-          {employees.length > 0 && hasPermission('funcionarios', 'Eliminar') && (
-            <button className={styles.clearBtn} onClick={clearAllEmployees}>
-              <FaTrash /> Limpar Tudo
-            </button>
-          )}
-          {hasPermission('funcionarios', 'Cadastrar') && (
-            <button
-              className={styles.addButton}
-              onClick={() => navigate('/cadastrar-funcionario')}
-            >
-              <FaUserPlus /> Novo Funcionário
-            </button>
-          )}
         </div>
       </div>
 
@@ -112,17 +124,33 @@ export default function Funcionarios() {
             <option value="Suspenso">Suspenso</option>
           </select>
         </div>
+
+        <div className={styles.headerActions}>
+          {employees.length > 0 && hasPermission('funcionarios', 'Eliminar') && (
+            <button className={styles.clearBtn} onClick={clearAllEmployees}>
+              <FaTrash /> Limpar
+            </button>
+          )}
+          {hasPermission('funcionarios', 'Cadastrar') && (
+            <button
+              className={styles.addButton}
+              onClick={() => navigate('/cadastrar-funcionario')}
+            >
+              <FaUserPlus /> Cadastrar
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={styles.grid}>
         {filtered.length > 0 ? filtered.map(func => (
           <div key={func.id} className={`${styles.card} card-modern`}>
-            {/* ... rest of card ... */}
-            <div className={`${styles.cardTopBar} ${styles[func.status.toLowerCase()]}`}></div>
+            {/* Status Bar */}
+            <div className={`${styles.cardTopBar} ${styles[func.status.toLowerCase().replace('é', 'e')]}`}></div>
 
             <div className={styles.cardInfo}>
               <div className={styles.cardHeader}>
-                <span className={`${styles.badge} ${styles[func.status.toLowerCase()]}`}>{func.status}</span>
+                <span className={`${styles.badge} ${styles[func.status.toLowerCase().replace('é', 'e')]}`}>{func.status}</span>
 
                 <div className={styles.menuContainer}>
                   <button
@@ -147,47 +175,45 @@ export default function Funcionarios() {
                         className={styles.menuItem}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const nextStatus = func.status === 'Ativo' ? 'Férias' :
-                            func.status === 'Férias' ? 'Inativo' : 'Ativo';
-                          updateEmployee(func.id, { status: nextStatus });
-
-                          addHistoryEvent({
-                            data: new Date().toISOString(),
-                            evento: 'Mudança de Status',
-                            tipo: 'sistema',
-                            funcionario: func.nome,
-                            cargo: func.cargo,
-                            dept: func.dept,
-                            resultadoQuantitativo: '-',
-                            resultadoQualitativo: nextStatus,
-                            criterios: []
-                          });
-
+                          setSelectedPerfEmployee(func);
                           setMenuAberto(null);
                         }}
                       >
-                        <FaExchangeAlt /> Mudar Status
+                        <FaChartPie /> Ver Desempenho
                       </button>
+
                       <div className={styles.divider}></div>
+                      <div className={styles.menuLabel}>Alterar Status para:</div>
+
+                      {func.status !== 'Ativo' && (
+                        <button className={styles.menuItem} onClick={() => handleStatusChange(func, 'Ativo')}>
+                          <FaExchangeAlt /> Ativo
+                        </button>
+                      )}
+                      {func.status !== 'Férias' && (
+                        <button className={styles.menuItem} onClick={() => handleStatusChange(func, 'Férias')}>
+                          <FaExchangeAlt /> Férias
+                        </button>
+                      )}
+                      {func.status !== 'Suspenso' && (
+                        <button className={styles.menuItem} onClick={() => handleStatusChange(func, 'Suspenso')}>
+                          <FaExchangeAlt /> Suspenso
+                        </button>
+                      )}
+                      {func.status !== 'Inativo' && (
+                        <button className={styles.menuItem} onClick={() => handleStatusChange(func, 'Inativo')}>
+                          <FaExchangeAlt /> Inativo
+                        </button>
+                      )}
+
+                      <div className={styles.divider}></div>
+
                       {hasPermission('funcionarios', 'Eliminar') && (
                         <button
                           className={`${styles.menuItem} ${styles.delete}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm('Tem certeza que deseja remover este funcionário?')) {
-                              removeEmployee(func.id);
-                              addHistoryEvent({
-                                data: new Date().toISOString(),
-                                evento: 'Desligamento',
-                                tipo: 'sistema', // Poderia ser um icone de alerta
-                                funcionario: func.nome,
-                                cargo: func.cargo,
-                                dept: func.dept,
-                                resultadoQuantitativo: '-',
-                                resultadoQualitativo: 'Removido',
-                                criterios: []
-                              });
-                            }
+                            setEmployeeToDelete(func);
                             setMenuAberto(null);
                           }}
                         >
@@ -200,8 +226,8 @@ export default function Funcionarios() {
               </div>
 
               <div className={styles.avatar}>
-                {func.foto ? (
-                  <img src={func.foto} alt={func.nome} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                {func.foto && typeof func.foto === 'string' && func.foto.length > 5 ? (
+                  <img src={(func.foto.startsWith('data:image') || func.foto.startsWith('http')) ? func.foto : getApiUrl('/' + func.foto)} alt={func.nome} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                 ) : (
                   getInitials(func.nome)
                 )}
@@ -246,8 +272,8 @@ export default function Funcionarios() {
             <div className={styles.modalBody}>
               {/* Avatar Grande */}
               <div className={styles.largeAvatar}>
-                {selectedEmployee.foto ? (
-                  <img src={selectedEmployee.foto} alt={selectedEmployee.nome} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                {selectedEmployee.foto && typeof selectedEmployee.foto === 'string' && selectedEmployee.foto.length > 5 ? (
+                  <img src={(selectedEmployee.foto.startsWith('data:image') || selectedEmployee.foto.startsWith('http')) ? selectedEmployee.foto : getApiUrl('/' + selectedEmployee.foto)} alt={selectedEmployee.nome} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                 ) : (
                   getInitials(selectedEmployee.nome)
                 )}
@@ -320,6 +346,126 @@ export default function Funcionarios() {
           </div>
         </div>
       )}
+      {/* MODAL DESEMPENHO */}
+      {selectedPerfEmployee && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedPerfEmployee(null)}>
+          <div className={styles.perfModalContent} onClick={e => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={() => setSelectedPerfEmployee(null)}>
+              <FaTimes />
+            </button>
+
+            <div className={styles.perfHeader}>
+              <h2>Desempenho de {selectedPerfEmployee.nome}</h2>
+            </div>
+
+            <div className={styles.perfBody}>
+              <div className={styles.perfGrid}>
+                <div className={styles.statCard}>
+                  <span className={styles.statValue}>
+                    {(history
+                      .filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id) && h.tipo === 'avaliacao')
+                      .reduce((acc, curr) => acc + (curr.score || 0), 0) /
+                      (history.filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id) && h.tipo === 'avaliacao').length || 1)
+                    ).toFixed(1)} / 20
+                  </span>
+                  <span className={styles.statLabel}>Média Geral</span>
+                </div>
+                <div className={styles.statCard}>
+                  <span className={styles.statValue}>
+                    {history
+                      .filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id))
+                      .reduce((acc, curr) => acc + (curr.faltas || 0), 0)}
+                  </span>
+                  <span className={styles.statLabel}>Total de Faltas</span>
+                </div>
+                <div className={styles.statCard}>
+                  <span className={styles.statValue}>
+                    {history.filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id) && h.tipo === 'avaliacao').length}
+                  </span>
+                  <span className={styles.statLabel}>Avaliações Feitas</span>
+                </div>
+              </div>
+
+              <div className={styles.historyTitle}>
+                Histórico de Avaliações
+                <select
+                  value={perfFilter}
+                  onChange={e => setPerfFilter(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-tertiary)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <option value="Todos">Todos os Períodos</option>
+                  <option value="Diário">Diário</option>
+                  <option value="Semanal">Semanal</option>
+                  <option value="Mensal">Mensal</option>
+                  <option value="Trimestral">Trimestral</option>
+                  <option value="Semestral">Semestral</option>
+                  <option value="Anual">Anual</option>
+                </select>
+              </div>
+
+              <div className={styles.historyList}>
+                {history
+                  .filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id) && h.tipo === 'avaliacao')
+                  .filter(h => perfFilter === 'Todos' || h.periodo === perfFilter)
+                  .map(h => (
+                    <div key={h.id} className={styles.historyCard}>
+                      <div className={styles.histMain}>
+                        <span className={styles.histPeriod}>{h.periodo || 'Mensal'}</span>
+                        <span className={styles.histDate}>{new Date(h.data || h.data_hora).toLocaleDateString()}</span>
+                      </div>
+                      <div className={styles.histScore}>
+                        <span className={styles.scoreVal}>{h.resultadoQuantitativo}</span>
+                        <span className={styles.scoreQuali} style={{
+                          color: h.resultadoQualitativo === 'Muito Bom' ? '#10b981' :
+                            h.resultadoQualitativo === 'Bom' ? '#3b82f6' :
+                              h.resultadoQualitativo === 'Razoável' ? '#f59e0b' : '#ef4444'
+                        }}>{h.resultadoQualitativo}</span>
+                        {h.faltas > 0 && <span className={styles.histFaltas}>{h.faltas} Faltas</span>}
+                      </div>
+                    </div>
+                  ))}
+
+                {history.filter(h => (h.funcionarioId === selectedPerfEmployee.id || h.id_funcionario === selectedPerfEmployee.id) && h.tipo === 'avaliacao' && (perfFilter === 'Todos' || h.periodo === perfFilter)).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    Nenhuma avaliação encontrada para este período.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={!!employeeToDelete}
+        title="Remover Funcionário"
+        message={`Tem certeza que deseja remover permanentemente o funcionário ${employeeToDelete?.nome}?`}
+        onConfirm={() => {
+          if (employeeToDelete) {
+            removeEmployee(employeeToDelete.id);
+            addHistoryEvent({
+              data: new Date().toISOString(),
+              evento: 'Desligamento',
+              tipo: 'sistema',
+              funcionario: employeeToDelete.nome,
+              cargo: employeeToDelete.cargo,
+              dept: employeeToDelete.dept,
+              resultadoQuantitativo: '-',
+              resultadoQualitativo: 'Removido',
+              criterios: []
+            });
+            setEmployeeToDelete(null);
+          }
+        }}
+        onClose={() => setEmployeeToDelete(null)}
+      />
     </div>
   )
 }

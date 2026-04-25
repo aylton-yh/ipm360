@@ -1,0 +1,192 @@
+.pageContainer {
+    padding-bottom: 5rem;
+    min-height: 100vh;
+    background-color: var(--bg-tertiary);
+    overflow: hidden;
+}
+
+.campusSection {
+    padding: 2rem;
+}
+
+.sectionHeader {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+.sectionHeader h2 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.highlight {
+    background: linear-gradient(120deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    position: relative;
+}
+
+.carouselWrapper {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    overflow: hidden;
+    position: relative;
+    padding: 2rem 0;
+}
+
+.carouselTrack {
+    display: flex;
+    gap: 2rem;
+    width: max-content;
+    padding: 0 2rem;
+}
+
+.carouselCard {
+    width: 600px;
+    height: 400px;
+    border-radius: 2rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carouselImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filterImg1 { filter: brightness(1.1) contrast(1.1) saturate(1.2); }
+.filterImg2 { filter: brightness(1.05) contrast(1.15) saturate(1.1); }
+.filterImg3 { filter: brightness(1.1) contrast(1.1) saturate(1.15); }
+.filterImg4 { filter: brightness(1.05) contrast(1.1) saturate(1.25); }
+
+.carouselCard:hover .carouselImage {
+    transform: scale(1.05);
+}
+
+.locationSection {
+    padding: 6rem 2rem;
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 2rem;
+    margin: 4rem 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.locationContainer {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+.locationInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.locationBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary-color);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.address {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.address strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.locationFeatures {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.locFeature {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.locFeature:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+}
+
+.mapWrapper {
+    width: 100%;
+    border-radius: 2rem;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #000;
+}
+
+@media (max-width: 1024px) {
+    .locationContainer {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+    .locationBadge {
+        margin: 0 auto;
+    }
+    .locationFeatures {
+        justify-content: center;
+    }
+}
+
+/* Novo Cabeçalho da Página */
+.pageHeader {
+    text-align: center;
+    padding: 12rem 2rem 5rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+}
+
+.pageHeader h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.pageHeader p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+}

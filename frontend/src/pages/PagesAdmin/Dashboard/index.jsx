@@ -1,7 +1,8 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaClipboardCheck, FaChartLine, FaExclamationTriangle } from 'react-icons/fa';
+import { FaUsers, FaClipboardCheck, FaChartLine, FaExclamationTriangle, FaStar } from 'react-icons/fa';
 import styles from './Dashboard.module.css';
+import DashboardCalendar from '../../../components/DashboardCalendar/index';
 import Graficos from '../../../components/Graficos/index';
 import { EmployeeContext } from '../../../context/EmployeeContext';
 import { AuthContext } from '../../../context/AuthContext';
@@ -20,8 +21,10 @@ export default function Dashboard() {
     const evaluations = history.filter(h => h.tipo === 'avaliacao');
     const totalEvalCount = evaluations.length;
 
-    // 3. Desempenho Médio
+    // 3. Desempenho Médio & Alta Performance
     let avgScore = 0;
+    let highPerformers = 0;
+
     if (totalEvalCount > 0) {
       const scores = evaluations.map(h => {
         if (typeof h.resultadoQuantitativo === 'string' && h.resultadoQuantitativo.includes('/')) {
@@ -30,9 +33,10 @@ export default function Dashboard() {
         return 0;
       });
       avgScore = scores.reduce((a, b) => a + b, 0) / totalEvalCount;
+      highPerformers = scores.filter(s => s >= 16).length;
     }
 
-    // 4. Ações Pendentes (Avaliações Pendentes + Notificações de Registro)
+    // 4. Ações Pendentes
     const pendingEvals = history.filter(h => h.resultadoQualitativo === 'Pendente').length;
     const pendingAdmins = notifications.filter(n => n.type === 'new_registration').length;
     const totalPending = pendingEvals + pendingAdmins;
@@ -41,14 +45,10 @@ export default function Dashboard() {
       activeEmployees,
       totalEvalCount,
       avgScore: avgScore.toFixed(1),
+      highPerformers,
       totalPending
     };
   }, [employees, history, notifications]);
-
-  // Pegar as 4 atividades mais recentes
-  const recentActivities = useMemo(() => {
-    return history.slice(0, 4);
-  }, [history]);
 
   const metrics = [
     {
@@ -119,27 +119,79 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Gráficos Novos (Radar, Barra, Rosca) */}
-      <Graficos />
+      {/* Gráficos de Medição */}
+      <div style={{ marginTop: '5px' }}>
+        <Graficos />
+      </div>
 
-      {/* Atividades Recentes Dinâmicas */}
-      <h3 className={styles.sectionTitle}>Últimas Atualizações</h3>
-      <div className={styles.activitiesRow}>
-        {recentActivities.length === 0 ? (
-          <p style={{ color: '#64748b', padding: '10px' }}>Nenhuma atividade recente encontrada.</p>
-        ) : (
-          recentActivities.map((activity, idx) => (
-            <div key={idx} className={styles.activityCard}>
-              <div className={styles.avatarSmall}>
-                {(activity.funcionario || activity.funcionario_nome || 'U').charAt(0)}
+      {/* Grid Inferior: Alta performance e Agenda */}
+      <div className={styles.bottomGridCompact} style={{ marginTop: '25px' }}>
+        <div className={styles.altaPerformanceCard}>
+          <div className={styles.altaHeader}>
+            <div className={styles.iconCircle}>
+              <FaStar />
+            </div>
+            <div>
+              <h3>Alta Performance</h3>
+              <p>Funcionários excelente (≥ 16)</p>
+            </div>
+          </div>
+          <div className={styles.altaContent}>
+            <div className={styles.altaValueLine}>
+              <h1>{dashboardStats.highPerformers}</h1>
+              <span>funcionários</span>
+            </div>
+
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${dashboardStats.totalEvalCount > 0 ? (dashboardStats.highPerformers / dashboardStats.totalEvalCount) * 100 : 0}%` }}
+              ></div>
+            </div>
+            <p className={styles.altaDesc}><strong>{dashboardStats.totalEvalCount > 0 ? Math.round((dashboardStats.highPerformers / dashboardStats.totalEvalCount) * 100) : 0}%</strong> do total.</p>
+          </div>
+        </div>
+
+        {/* Card do Meio: Metas */}
+        <div className={styles.metasCard}>
+          <div className={styles.metasHeader}>
+            <FaChartLine style={{ color: 'var(--primary-color)' }} />
+            <h3>Metas da Instituição</h3>
+          </div>
+          <div className={styles.metasList}>
+            <div className={styles.metaItem}>
+              <div className={styles.metaInfo}>
+                <span className={styles.metaLabel}>Taxa de Avaliação</span>
+                <span className={styles.metaValue}>82%</span>
               </div>
-              <div className={styles.activityInfo}>
-                <h4>{activity.funcionario}</h4>
-                <p>{activity.evento}</p>
+              <div className={styles.metaBar}>
+                <div className={styles.metaFill} style={{ width: '82%', background: '#10b981' }}></div>
               </div>
             </div>
-          ))
-        )}
+            <div className={styles.metaItem}>
+              <div className={styles.metaInfo}>
+                <span className={styles.metaLabel}>Formação Contínua</span>
+                <span className={styles.metaValue}>65%</span>
+              </div>
+              <div className={styles.metaBar}>
+                <div className={styles.metaFill} style={{ width: '65%', background: '#3b82f6' }}></div>
+              </div>
+            </div>
+            <div className={styles.metaItem}>
+              <div className={styles.metaInfo}>
+                <span className={styles.metaLabel}>Engajamento</span>
+                <span className={styles.metaValue}>94%</span>
+              </div>
+              <div className={styles.metaBar}>
+                <div className={styles.metaFill} style={{ width: '94%', background: '#8b5cf6' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.calendarSection}>
+          <DashboardCalendar />
+        </div>
       </div>
     </div>
   )

@@ -6,11 +6,11 @@
 }
 
 .statCard {
-  background: white;
+  background: var(--bg-tertiary);
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
 }
@@ -18,58 +18,67 @@
 .statLabel {
   font-size: 13px;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 5px;
 }
 
 .statValue {
   font-size: 28px;
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .tableCard {
   padding: 0 !important;
   overflow: hidden;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
 }
 
 .toolbar {
-  padding: 25px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 24px;
+  gap: 16px;
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.searchBox {
+.searchWrapper {
   position: relative;
-  width: 350px;
+  flex: 1;
+  max-width: 400px;
 }
 
 .searchIcon {
   position: absolute;
-  left: 15px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  z-index: 1;
 }
 
-.searchBox input {
+.searchWrapper input {
   width: 100%;
-  padding: 12px 15px 12px 40px;
+  padding: 10px 12px 10px 36px;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #f8fafc;
-  color: #334155;
+  color: var(--text-primary);
   transition: all 0.3s;
 }
 
-.searchBox input:focus {
+.searchWrapper input:focus {
   outline: none;
   background: white;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .filterGroup {
@@ -78,11 +87,11 @@
 }
 
 .filterBtn {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   padding: 10px 15px;
   border-radius: 8px;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 13px;
   display: flex;
@@ -93,31 +102,31 @@
 }
 
 .filterBtn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
 }
 
 .periodSelector {
   display: flex;
   align-items: center;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 0 15px;
   height: 42px;
   gap: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s;
 }
 
 .periodSelector:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .periodLabel {
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -128,7 +137,7 @@
 .timeSelect {
   border: none;
   background: transparent;
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 13px;
   outline: none;
@@ -145,10 +154,10 @@
   top: 105%;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-tertiary);
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
   z-index: 1000;
   overflow: hidden;
   animation: fadeIn 0.2s ease-out;
@@ -157,13 +166,13 @@
 .suggestionItem {
   padding: 12px 15px;
   font-size: 14px;
-  color: #334155;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .suggestionItem:hover {
-  background: #f1f5f9;
+  background: var(--bg-secondary);
   color: var(--primary-color);
 }
 
@@ -174,7 +183,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(8px);
   z-index: 5000;
   display: flex;
@@ -193,7 +202,7 @@
   width: 60px;
   height: 60px;
   border: 5px solid rgba(255, 255, 255, 0.1);
-  border-left-color: #10b981;
+  border-left-color: var(--primary-color);
   border-radius: 50%;
   margin: 0 auto 20px auto;
   animation: spin 1s linear infinite;
@@ -206,7 +215,7 @@
 }
 
 .exportLoader p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 15px;
 }
 
@@ -222,7 +231,7 @@
 }
 
 .exportBtn {
-  background: #1e293b;
+  background: var(--primary-dark);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -237,7 +246,7 @@
 
 .exportBtn:hover,
 .exportBtn.active {
-  background: #0f172a;
+  background: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -245,10 +254,10 @@
   position: absolute;
   top: 110%;
   right: 0;
-  background: white;
+  background: var(--bg-tertiary);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
   z-index: 100;
   min-width: 160px;
   padding: 5px;
@@ -263,7 +272,7 @@
   padding: 10px 15px;
   border: none;
   background: transparent;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 500;
   text-align: left;
   border-radius: 8px;
@@ -272,8 +281,14 @@
 }
 
 .exportOption:hover {
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .tableWrapper {
@@ -289,50 +304,48 @@
 .table th {
   text-align: left;
   padding: 15px 10px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.table tr {
-  transition: transform 0.2s;
-}
-
 .table tbody tr {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
 }
 
 .table tbody tr:hover {
   transform: scale(1.005);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
 }
 
 .table td {
   padding: 15px 10px;
-  color: #334155;
+  color: var(--text-secondary);
   font-size: 14px;
-  background: white;
-  border-top: 1px solid #f8fafc;
-  border-bottom: 1px solid #f8fafc;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .table td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
-  border-left: 1px solid #f8fafc;
+  border-left: 1px solid var(--border-color);
 }
 
 .table td:last-child {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
-  border-right: 1px solid #f8fafc;
+  border-right: 1px solid var(--border-color);
 }
 
 .dateCell {
-  color: #64748b;
+  color: var(--text-muted);
   font-family: monospace;
   font-weight: 500;
 }
@@ -347,7 +360,7 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--bg-secondary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -356,7 +369,7 @@
 
 .eventName {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .userCell {
@@ -368,7 +381,7 @@
 .userAvatar {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -384,11 +397,11 @@
 }
 
 .deptTag {
-  background: #f1f5f9;
+  background: var(--bg-secondary);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -402,15 +415,15 @@
 }
 
 .statusBadge.success {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #dcfce7;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .statusBadge.pending {
-  background: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fef3c7;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .detailsBtn {
@@ -426,7 +439,7 @@
 }
 
 .detailsBtn:hover {
-  background: #f0fdf4;
+  background: var(--primary-light);
 }
 
 /* Modal Styles */
@@ -446,13 +459,14 @@
 }
 
 .modalContent {
-  background: white;
+  background: var(--bg-tertiary);
   width: 400px;
   border-radius: 20px;
   padding: 30px;
   position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-premium);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border-color);
 }
 
 .closeBtn {
@@ -462,7 +476,7 @@
   background: none;
   border: none;
   font-size: 18px;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -478,7 +492,7 @@
   width: 80px;
   height: 80px;
   font-size: 32px;
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -486,12 +500,12 @@
   align-items: center;
   font-weight: 700;
   margin-bottom: 15px;
-  box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
 }
 
 .modalTitle {
   font-size: 20px;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 700;
 }
@@ -506,7 +520,7 @@
 }
 
 .modalBody {
-  background: #f8fafc;
+  background: var(--bg-secondary);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -514,7 +528,7 @@
 
 .modalDivider {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--border-color);
   margin: 15px 0;
 }
 
@@ -530,12 +544,12 @@
 }
 
 .infoLabel {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .infoValue {
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 600;
   text-align: right;
 }
@@ -557,7 +571,7 @@
   gap: 10px;
   cursor: pointer;
   transition: .2s;
-  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
+  box-shadow: 0 4px 10px var(--primary-light);
 }
 
 .btnAction:hover {
@@ -565,29 +579,7 @@
   background: var(--primary-dark);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Estilos para Modal de Perfil Completo */
+/* Modal de Perfil Completo */
 .modalOverlayFull {
   position: fixed;
   top: 0;
@@ -608,15 +600,10 @@
   width: 90%;
   max-width: 600px;
   border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-premium);
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border-color);
-}
-
-.modalHeaderFull {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-  height: 140px;
 }
 
 .modalBodyFull {
@@ -629,15 +616,15 @@
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border: 6px solid var(--bg-secondary);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 50px;
   font-weight: 800;
-  color: var(--accent-primary);
+  color: var(--primary-color);
   margin: 0 auto 20px auto;
 }
 

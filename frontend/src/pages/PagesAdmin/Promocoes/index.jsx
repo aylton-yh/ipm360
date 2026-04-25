@@ -1,19 +1,41 @@
-import React, { useState, useContext } from 'react';
-import { FaTrophy, FaUserTie, FaBuilding, FaArrowUp, FaTimes, FaSave, FaSearch } from 'react-icons/fa';
+import React, { useState, useContext, useEffect } from 'react';
+import { FaTrophy, FaUserTie, FaBuilding, FaArrowRight, FaTimes, FaSave, FaSearch, FaArrowUp, FaExchangeAlt, FaInfoCircle } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import { EmployeeContext } from '../../../context/EmployeeContext';
 import { AuthContext } from '../../../context/AuthContext';
-import { departmentsData } from '../../../utils/departmentsData';
 import styles from './Promocoes.module.css';
 
 export default function Promocoes() {
-    const { employees, updateEmployee, addHistoryEvent, departments } = useContext(EmployeeContext);
-    const { hasPermission } = useContext(AuthContext);
+    const { employees, promoteEmployee, departments } = useContext(EmployeeContext);
+    const { hasPermission, getApiUrl } = useContext(AuthContext);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [newRole, setNewRole] = useState('');
-    const [isPromoting, setIsPromoting] = useState(false);
+    
+    // Estados para a nova promoção
+    const [newDeptId, setNewDeptId] = useState('');
+    const [newCargoId, setNewCargoId] = useState('');
+    const [motivo, setMotivo] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Agrupar funcionários por departamento
+    // Quando selecionar um funcionário, inicializar os valores atuais
+    useEffect(() => {
+        if (selectedEmployee) {
+            const currentDept = departments.find(d => d.nome === selectedEmployee.dept);
+            setNewDeptId(currentDept?.id || '');
+            
+            // Tentar achar o ID do cargo atual
+            if (currentDept) {
+                const currentCargo = currentDept.seccoes.find(s => s.nome === selectedEmployee.cargo);
+                setNewCargoId(currentCargo?.id || '');
+            }
+            setMotivo('');
+        }
+    }, [selectedEmployee, departments]);
+
+    // Filtrar cargos baseados no departamento selecionado
+    const availableCargos = departments.find(d => Number(d.id) === Number(newDeptId))?.seccoes || [];
+
+    // Agrupar funcionários por departamento para a lista lateral
     const employeesByDept = departments.map(dept => {
         return {
             ...dept,
@@ -23,32 +45,19 @@ export default function Promocoes() {
         };
     }).filter(dept => dept.staffMembers.length > 0);
 
-    const handlePromote = async () => {
-        if (!newRole) return alert('Por favor, insira o novo cargo.');
+    const handlePromoteSubmit = async () => {
+        if (!newCargoId) return alert('Por favor, selecione o novo cargo.');
+        
+        setIsSubmitting(true);
+        const res = await promoteEmployee(selectedEmployee.id, newCargoId, motivo);
+        setIsSubmitting(false);
 
-        // Atualizar funcionário
-        await updateEmployee(selectedEmployee.id, {
-            ...selectedEmployee,
-            cargo: newRole
-        });
-
-        // Registrar no histórico
-        await addHistoryEvent({
-            data: new Date().toISOString(),
-            evento: `Promoção: ${selectedEmployee.cargo} → ${newRole}`,
-            tipo: 'promocao',
-            funcionarioId: selectedEmployee.id,
-            funcionario: selectedEmployee.nome,
-            cargo: newRole,
-            dept: selectedEmployee.dept,
-            resultadoQuantitativo: 'N/A',
-            resultadoQualitativo: 'Promovido',
-            criterios: []
-        });
-
-        alert(`${selectedEmployee.nome} foi promovido com sucesso para ${newRole}!`);
-        setSelectedEmployee(null);
-        setNewRole('');
+        if (res.success) {
+            alert(`Movimentação de ${selectedEmployee.nome} realizada com sucesso!`);
+            setSelectedEmployee(null);
+        } else {
+            alert(res.message);
+        }
     };
 
     if (!hasPermission('funcionarios', 'Editar')) {
@@ -65,9 +74,9 @@ export default function Promocoes() {
     return (
         <div className="page-container">
             <div className="page-header">
-                <div>
-                    <h1 className="page-title">Plano de Promoções</h1>
-                    <p style={{ color: '#64748b' }}>Gerencie o crescimento e progressão de carreira dos colaboradores</p>
+                <div className={styles.headerInfo}>
+                    <h1 className="page-title">Plano de Promoções & Carreira</h1>
+                    <p>Gerencie progressões, transferências e o crescimento profissional da sua equipa.</p>
                 </div>
             </div>
 
@@ -76,7 +85,7 @@ export default function Promocoes() {
                     <FaSearch className={styles.searchIcon} />
                     <input
                         type="text"
-                        placeholder="Pesquisar funcionário ou cargo..."
+                        placeholder="Pesquisar por nome ou cargo..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -84,106 +93,162 @@ export default function Promocoes() {
             </div>
 
             <div className={styles.deptGrid}>
-                {employeesByDept.map(dept => (
-                    <div key={dept.id} className={styles.deptCard}>
-                        <div className={styles.deptHeader} style={{ borderLeftColor: dept.color }}>
-                            <div className={styles.deptIcon} style={{ color: dept.color }}>
-                                <FaBuilding />
-                            </div>
-                            <div className={styles.deptInfo}>
-                                <h3 className={styles.deptName}>{dept.nome}</h3>
-                                <span className={styles.deptCount}>{dept.staffMembers.length} Colaboradores</span>
-                            </div>
-                        </div>
-
-                        <div className={styles.employeeList}>
-                            {dept.staffMembers.map(emp => (
-                                <div key={emp.id} className={styles.employeeItem}>
-                                    <div className={styles.empMain}>
-                                        <div className={styles.avatar}>
-                                            {emp.foto ? (
-                                                <img src={emp.foto} alt={emp.nome} />
-                                            ) : (
-                                                emp.nome.charAt(0)
-                                            )}
-                                        </div>
-                                        <div className={styles.empDetails}>
-                                            <span className={styles.empName}>{emp.nome}</span>
-                                            <span className={styles.empRole}>{emp.cargo}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        className={styles.promoteBtn}
-                                        onClick={() => setSelectedEmployee(emp)}
-                                    >
-                                        <FaArrowUp /> Promover
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                {employeesByDept.length === 0 ? (
+                    <div className={styles.noResults}>
+                        <FaSearch size={40} />
+                        <p>Nenhum funcionário encontrado para os termos pesquisados.</p>
                     </div>
-                ))}
+                ) : (
+                    employeesByDept.map(dept => (
+                        <div key={dept.id} className={styles.deptCard}>
+                            <div className={styles.deptHeader} style={{ borderLeftColor: dept.color }}>
+                                <div className={styles.deptIcon} style={{ color: dept.color }}>
+                                    <FaBuilding />
+                                </div>
+                                <div className={styles.deptInfo}>
+                                    <h3 className={styles.deptName}>{dept.nome}</h3>
+                                    <span className={styles.deptCount}>{dept.staffMembers.length} Funcionários</span>
+                                </div>
+                            </div>
+
+                            <div className={styles.employeeList}>
+                                {dept.staffMembers.map((emp, idx) => (
+                                    <motion.div
+                                        key={emp.id}
+                                        className={styles.employeeItem}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        whileHover={{ x: 5 }}
+                                    >
+                                        <div className={styles.empMain}>
+                                            <div className={styles.avatar}>
+                                                {emp.foto && typeof emp.foto === 'string' && emp.foto.length > 5 ? (
+                                                    <img src={(emp.foto.startsWith('data:image') || emp.foto.startsWith('http')) ? emp.foto : getApiUrl('/' + emp.foto)} alt={emp.nome} />
+                                                ) : (
+                                                    emp.nome.charAt(0)
+                                                )}
+                                            </div>
+                                            <div className={styles.empDetails}>
+                                                <span className={styles.empName}>{emp.nome}</span>
+                                                <span className={styles.empRole}>{emp.cargo}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            className={styles.promoteBtn}
+                                            onClick={() => setSelectedEmployee(emp)}
+                                        >
+                                            <FaArrowUp /> Promover
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
-            {/* Modal de Promoção */}
-            {selectedEmployee && (
-                <div className={styles.modalOverlay} onClick={() => setSelectedEmployee(null)}>
-                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={() => setSelectedEmployee(null)}>
-                            <FaTimes />
-                        </button>
-
-                        <div className={styles.modalHeader}>
-                            <div className={styles.trophyIcon}>
-                                <FaTrophy />
+            <AnimatePresence>
+                {selectedEmployee && (
+                    <div className={styles.modalOverlay} onClick={() => setSelectedEmployee(null)}>
+                        <motion.div
+                            className={styles.modalContent}
+                            onClick={e => e.stopPropagation()}
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                        >
+                            <div className={styles.modalHeaderModern}>
+                                <div className={styles.headerTitleArea}>
+                                    <div className={styles.iconBadge}><FaExchangeAlt /></div>
+                                    <div>
+                                        <h2>Progressão de Carreira</h2>
+                                        <p>Atualize o cargo ou departamento de <strong>{selectedEmployee.nome}</strong></p>
+                                    </div>
+                                </div>
+                                <button className={styles.closeBtn} onClick={() => setSelectedEmployee(null)}><FaTimes /></button>
                             </div>
-                            <h2 className={styles.modalTitle}>Promover Colaborador</h2>
-                            <p className={styles.modalSubtitle}>Defina o novo passo na carreira de {selectedEmployee.nome}</p>
-                        </div>
 
-                        <div className={styles.modalBody}>
-                            <div className={styles.currentStatus}>
-                                <div className={styles.statusItem}>
-                                    <label>Cargo Atual</label>
-                                    <span>{selectedEmployee.cargo}</span>
+                            <div className={styles.modalBodyModern}>
+                                <div className={styles.currentInfoCard}>
+                                    <div className={styles.infoGroup}>
+                                        <label>Situacao Atual</label>
+                                        <div className={styles.infoValues}>
+                                            <span><FaBuilding /> {selectedEmployee.dept}</span>
+                                            <span className={styles.separator}>|</span>
+                                            <span><FaUserTie /> {selectedEmployee.cargo}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.statusArrow}>
-                                    <FaArrowUp />
+
+                                <div className={styles.formRow}>
+                                    <div className={styles.inputGroup}>
+                                        <label>Novo Departamento</label>
+                                        <div className={styles.selectWrapper}>
+                                            <FaBuilding className={styles.inputIcon} />
+                                            <select 
+                                                value={newDeptId} 
+                                                onChange={e => {
+                                                    setNewDeptId(e.target.value);
+                                                    setNewCargoId(''); // Reset cargo ao mudar dept
+                                                }}
+                                            >
+                                                <option value="">Selecione o Departamento...</option>
+                                                {departments.map(d => (
+                                                    <option key={d.id} value={d.id}>{d.nome}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.inputGroup}>
+                                        <label>Novo Cargo / Função</label>
+                                        <div className={styles.selectWrapper}>
+                                            <FaTrophy className={styles.inputIcon} />
+                                            <select 
+                                                value={newCargoId} 
+                                                onChange={e => setNewCargoId(e.target.value)}
+                                                disabled={!newDeptId}
+                                            >
+                                                <option value="">Selecione a Função...</option>
+                                                {availableCargos.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.nome}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.statusItem}>
-                                    <label>Novo Cargo</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: Gerente de Projetos"
-                                        value={newRole}
-                                        onChange={(e) => setNewRole(e.target.value)}
-                                        autoFocus
+
+                                <div className={styles.inputGroup}>
+                                    <label>Motivo da Alteração (Opcional)</label>
+                                    <textarea 
+                                        placeholder="Ex: Excelente desempenho nas avaliações do trimestre..."
+                                        value={motivo}
+                                        onChange={e => setMotivo(e.target.value)}
                                     />
                                 </div>
+
+                                <div className={styles.infoAlert}>
+                                    <FaInfoCircle />
+                                    <p>Esta alteração atualizará o perfil do funcionário em todo o sistema e gerará uma entrada no histórico oficial.</p>
+                                </div>
                             </div>
 
-                            <div className={styles.modalAlert}>
-                                <p>Esta ação será registrada no histórico do funcionário e atualizará seu perfil imediatamente.</p>
+                            <div className={styles.modalFooterModern}>
+                                <button className={styles.btnSec} onClick={() => setSelectedEmployee(null)}>Cancelar</button>
+                                <button 
+                                    className={styles.btnPri} 
+                                    onClick={handlePromoteSubmit}
+                                    disabled={isSubmitting || !newCargoId}
+                                >
+                                    {isSubmitting ? 'Processando...' : <><FaSave /> Confirmar Alteração</>}
+                                </button>
                             </div>
-                        </div>
-
-                        <div className={styles.modalFooter}>
-                            <button
-                                className={styles.btnCancel}
-                                onClick={() => setSelectedEmployee(null)}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                className={styles.btnSave}
-                                onClick={handlePromote}
-                            >
-                                <FaSave /> Confirmar Promoção
-                            </button>
-                        </div>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 }
+

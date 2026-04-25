@@ -70,15 +70,34 @@ exports.updateDepartamento = async (req, res) => {
     try {
         await connection.beginTransaction();
 
+        // 1. Obter nome antigo para sincronização de perfis
+        const [oldDeptRows] = await connection.query('SELECT nome_departamento FROM departamento WHERE id_departamento = ?', [id]);
+        if (oldDeptRows.length === 0) {
+            throw new Error('Departamento não encontrado');
+        }
+        const oldName = oldDeptRows[0].nome_departamento;
+
+        // 2. Atualizar a tabela departamento
         await connection.query(
             'UPDATE departamento SET nome_departamento = ?, responsavel_nome = ?, cor = ?, icone = ? WHERE id_departamento = ?',
             [nome, head, color, icon, id]
         );
 
-        // Atualizar seções: remover antigas e inserir novas (abordagem simples)
-        await connection.query('DELETE FROM seccao WHERE id_departamento = ?', [id]);
-        if (seccoes && seccoes.length > 0) {
-            for (const secNome of seccoes) {
+        // 3. Sincronizar nome do departamento nos perfis (se o nome mudou)
+        if (nome !== oldName) {
+            await connection.query('UPDATE usuario_perfil SET departamento = ? WHERE departamento = ?', [nome, oldName]);
+            await connection.query('UPDATE admin_perfil SET departamento = ? WHERE departamento = ?', [nome, oldName]);
+        }
+
+        // 4. Atualizar seções de forma incremental para não quebrar IDs usados por funcionários
+        const [currentSeccoes] = await connection.query('SELECT id_seccao, nome_seccao FROM seccao WHERE id_departamento = ?', [id]);
+        
+        const currentNames = currentSeccoes.map(s => s.nome_seccao);
+        const newNames = seccoes || [];
+
+        // Adicionar novas seções
+        for (const secNome of newNames) {
+            if (!currentNames.includes(secNome)) {
                 await connection.query(
                     'INSERT INTO seccao (nome_seccao, id_departamento) VALUES (?, ?)',
                     [secNome, id]
@@ -86,12 +105,24 @@ exports.updateDepartamento = async (req, res) => {
             }
         }
 
+        // Remover seções antigas apenas se NÃO estiverem em uso por funcionários
+        for (const oldSec of currentSeccoes) {
+            if (!newNames.includes(oldSec.nome_seccao)) {
+                const [usageRows] = await connection.query('SELECT COUNT(*) as count FROM funcionario WHERE id_cargo = ?', [oldSec.id_seccao]);
+                if (usageRows[0].count === 0) {
+                    await connection.query('DELETE FROM seccao WHERE id_seccao = ?', [oldSec.id_seccao]);
+                } else {
+                    console.log(`[DEPT UPDATE] Seção "${oldSec.nome_seccao}" (ID ${oldSec.id_seccao}) mantida pois há funcionários nela.`);
+                }
+            }
+        }
+
         await connection.commit();
         res.json({ message: 'Departamento atualizado com sucesso' });
     } catch (error) {
         await connection.rollback();
-        console.error(error);
-        res.status(400).json({ error: 'Erro ao atualizar departamento' });
+        console.error('ERRO_AO_ATUALIZAR_DEPARTAMENTO:', error);
+        res.status(400).json({ error: error.message || 'Erro ao atualizar departamento' });
     } finally {
         connection.release();
     }

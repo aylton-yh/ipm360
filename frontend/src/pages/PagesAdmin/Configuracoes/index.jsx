@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { FaUserCog, FaDesktop, FaShieldAlt, FaBell, FaLock, FaCamera, FaSave, FaMoon, FaGlobe, FaMobileAlt, FaEnvelope, FaArrowLeft, FaChevronRight } from 'react-icons/fa';
+import React, { useState, useContext } from 'react';
+import {
+  FaUserCog, FaDesktop, FaShieldAlt, FaBell, FaLock,
+  FaSave, FaMoon, FaSun, FaGlobe, FaArrowLeft
+} from 'react-icons/fa';
 import { AuthContext } from '../../../context/AuthContext';
 import styles from './Configuracoes.module.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Configuracoes() {
-  const { hasPermission, changePassword } = useContext(AuthContext);
+  const { hasPermission, changePassword, theme, updateTheme } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState('preferencias');
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
   // Estados para segurança (alteração de senha)
   const [passwords, setPasswords] = useState({
@@ -15,15 +18,6 @@ export default function Configuracoes() {
     confirm: ''
   });
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const handleThemeToggle = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
 
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,174 +44,164 @@ export default function Configuracoes() {
         alert(res.message);
       }
     } else {
-      alert("Configurações de " + activeSection + " salvas localmente!");
+      alert("Configurações salvas e sincronizadas!");
     }
   };
 
-  // Menu de navegação (Sem Conta e Perfil)
   const menuItems = [
-    {
-      id: 'preferencias',
-      label: 'Preferências',
-      desc: 'Tema, idioma e visualização',
-      icon: <FaDesktop />,
-      color: 'purple'
-    },
-    {
-      id: 'seguranca',
-      label: 'Segurança',
-      desc: 'Senha, 2FA e histórico',
-      icon: <FaShieldAlt />,
-      color: 'red'
-    },
-    {
-      id: 'notificacoes',
-      label: 'Notificações',
-      desc: 'Email, Push e SMS',
-      icon: <FaBell />,
-      color: 'orange'
-    },
-    {
-      id: 'privacidade',
-      label: 'Privacidade',
-      desc: 'Visibilidade e dados',
-      icon: <FaLock />,
-      color: 'green'
-    },
+    { id: 'preferencias', label: 'Preferências', icon: <FaDesktop />, color: 'emerald' },
+    { id: 'seguranca', label: 'Segurança', icon: <FaShieldAlt />, color: 'rose' },
+    { id: 'notificacoes', label: 'Notificações', icon: <FaBell />, color: 'amber' },
+    { id: 'privacidade', label: 'Privacidade', icon: <FaLock />, color: 'indigo' },
   ];
 
   const renderContent = () => {
-    switch (activeSection) {
-      case 'preferencias':
-        return (
-          <div className={styles.detailView}>
-            <h2>Preferências do Sistema</h2>
-            <div className={styles.settingCard}>
-              <div className={styles.cardIcon}><FaMoon /></div>
-              <div className={styles.cardText}>
-                <h4>Modo Escuro</h4>
-                <p>Alternar entre tema claro e escuro</p>
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSection}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className={styles.detailView}
+        >
+          {activeSection === 'preferencias' && (
+            <>
+              <h2>Personalização</h2>
+              <div className={styles.settingCard}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardIcon}>
+                    {theme === 'dark' ? <FaMoon /> : <FaSun />}
+                  </div>
+                  <div className={styles.cardText}>
+                    <h4>Tema do Sistema</h4>
+                    <p>Escolha o aspeto visual que mais lhe agrada</p>
+                  </div>
+                </div>
+                <div className={styles.themeSwitch}>
+                  <button
+                    className={`${styles.themeBtn} ${theme === 'light' ? styles.active : ''}`}
+                    onClick={() => updateTheme('light')}
+                  >
+                    <FaSun /> Claro
+                  </button>
+                  <button
+                    className={`${styles.themeBtn} ${theme === 'dark' ? styles.active : ''}`}
+                    onClick={() => updateTheme('dark')}
+                  >
+                    <FaMoon /> Escuro
+                  </button>
+                </div>
               </div>
-              <div className={styles.toggleSwitch}>
-                <input
-                  type="checkbox"
-                  checked={theme === 'dark'}
-                  onChange={handleThemeToggle}
-                />
-                <span></span>
-              </div>
-            </div>
 
-            <div className={styles.settingCard}>
-              <div className={styles.cardIcon}><FaGlobe /></div>
-              <div className={styles.cardText}>
-                <h4>Idioma do Sistema</h4>
-                <select className={styles.selectInput}>
+              <div className={styles.settingCard}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardIcon}><FaGlobe /></div>
+                  <div className={styles.cardText}>
+                    <h4>Idioma Principal</h4>
+                    <p>Defina o idioma das labels e menus</p>
+                  </div>
+                </div>
+                <select className={styles.selectInput} style={{ width: 'auto', minWidth: '180px' }}>
                   <option>Português (AO)</option>
+                  <option>Português (BR)</option>
                   <option>English (US)</option>
                 </select>
               </div>
-            </div>
-          </div>
-        );
+            </>
+          )}
 
-      case 'seguranca':
-        return (
-          <div className={styles.detailView}>
-            <h2>Segurança da Conta</h2>
-            <div className={styles.formGroup}>
-              <label>Senha Atual</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                name="current"
-                value={passwords.current}
-                onChange={handlePasswordInputChange}
-              />
-            </div>
-            <div className={styles.formRow}>
+          {activeSection === 'seguranca' && (
+            <>
+              <h2>Segurança do Acesso</h2>
               <div className={styles.formGroup}>
-                <label>Nova Senha</label>
+                <label>Senha Atual</label>
                 <input
                   type="password"
-                  name="new"
-                  value={passwords.new}
+                  placeholder="Sua senha atual"
+                  name="current"
+                  value={passwords.current}
                   onChange={handlePasswordInputChange}
                 />
               </div>
-              <div className={styles.formGroup}>
-                <label>Confirmar Senha</label>
-                <input
-                  type="password"
-                  name="confirm"
-                  value={passwords.confirm}
-                  onChange={handlePasswordInputChange}
-                />
-              </div>
-            </div>
-
-            <h4 style={{ marginTop: 30, marginBottom: 15, color: 'var(--text-primary)' }}>Autenticação</h4>
-            <div className={styles.settingCard}>
-              <div className={styles.cardIcon}><FaShieldAlt /></div>
-              <div className={styles.cardText}>
-                <h4>Verificação em Duas Etapas</h4>
-                <p>Proteção adicional via SMS ou App</p>
-              </div>
-              <button className={styles.btnSecondary}>Configurar</button>
-            </div>
-          </div>
-        );
-
-      case 'notificacoes':
-        return (
-          <div className={styles.detailView}>
-            <h2>Notificações</h2>
-            <div className={styles.settingOptions}>
-              <label className={styles.checkboxOption}>
-                <input type="checkbox" defaultChecked />
-                <div>
-                  <strong><FaEnvelope /> Email</strong>
-                  <p>Receber resumos semanais e alertas de segurança</p>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label>Nova Senha</label>
+                  <input
+                    type="password"
+                    placeholder="Mínimo 4 caracteres"
+                    name="new"
+                    value={passwords.new}
+                    onChange={handlePasswordInputChange}
+                  />
                 </div>
-              </label>
-
-              <label className={styles.checkboxOption}>
-                <input type="checkbox" defaultChecked />
-                <div>
-                  <strong><FaBell /> Push (Navegador)</strong>
-                  <p>Notificações em tempo real sobre atividades</p>
+                <div className={styles.formGroup}>
+                  <label>Confirmar Nova Senha</label>
+                  <input
+                    type="password"
+                    placeholder="Repita a nova senha"
+                    name="confirm"
+                    value={passwords.confirm}
+                    onChange={handlePasswordInputChange}
+                  />
                 </div>
-              </label>
-            </div>
-          </div>
-        );
+              </div>
+            </>
+          )}
 
-      case 'privacidade':
-        return (
-          <div className={styles.detailView}>
-            <h2>Privacidade</h2>
-            <div className={styles.formGroup}>
-              <label>Quem pode ver meu perfil?</label>
-              <select className={styles.selectInput}>
-                <option>Todos da Organização</option>
-                <option>Apenas meu Departamento</option>
-                <option>Ninguém (Privado)</option>
-              </select>
-            </div>
-          </div>
-        );
+          {activeSection === 'notificacoes' && (
+            <>
+              <h2>Preferências de Alerta</h2>
+              <div className={styles.settingCard}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardIcon}><FaBell /></div>
+                  <div className={styles.cardText}>
+                    <h4>Notificações Push</h4>
+                    <p>Alertas em tempo real no navegador</p>
+                  </div>
+                </div>
+                <div className={styles.themeSwitch}>
+                  <button className={`${styles.themeBtn} ${styles.active}`}>Ativado</button>
+                  <button className={styles.themeBtn}>Desativado</button>
+                </div>
+              </div>
+            </>
+          )}
 
-      default:
-        return null;
-    }
+          {activeSection === 'privacidade' && (
+            <>
+              <h2>Gestão de Dados</h2>
+              <div className={styles.settingCard}>
+                <div className={styles.cardHead}>
+                  <div className={styles.cardIcon}><FaLock /></div>
+                  <div className={styles.cardText}>
+                    <h4>Visibilidade do Perfil</h4>
+                    <p>Quem pode ver seus dados de desempenho</p>
+                  </div>
+                </div>
+                <select className={styles.selectInput} style={{ width: 'auto' }}>
+                  <option>Toda a Organização</option>
+                  <option>Apenas Liderança</option>
+                  <option>Privado</option>
+                </select>
+              </div>
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   if (!hasPermission('sistema', 'Configurações')) {
     return (
       <div className="page-container">
-        <div className="card-modern" style={{ textAlign: 'center', padding: '50px' }}>
-          <h2 style={{ color: '#ef4444' }}>Acesso Negado</h2>
-          <p>Você não tem permissão para acessar as configurações do sistema.</p>
+        <div className="card-modern" style={{ textAlign: 'center', padding: '100px 40px' }}>
+          <FaShieldAlt size={80} color="var(--primary-color)" style={{ marginBottom: '20px', opacity: 0.5 }} />
+          <h2 style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 800 }}>Acesso Restrito</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '18px' }}>
+            Apenas administradores de alto nível podem gerir estas definições.
+          </p>
         </div>
       </div>
     );
@@ -225,15 +209,16 @@ export default function Configuracoes() {
 
   return (
     <div className="page-container">
-      <div className={styles.headerWrapper}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">Configurações</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Central de preferências do usuário</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>
+            Gira suas preferências, segurança e aspeto do sistema.
+          </p>
         </div>
       </div>
 
       <div className={styles.splitLayout}>
-        {/* Lado Esquerdo: Menu */}
         <div className={styles.sidebarMenu}>
           {menuItems.map(item => (
             <div
@@ -241,32 +226,29 @@ export default function Configuracoes() {
               className={`${styles.menuItem} ${activeSection === item.id ? styles.active : ''}`}
               onClick={() => setActiveSection(item.id)}
             >
-              <div className={`${styles.menuIcon} ${styles[`bg-${item.color}`]}`}>
-                {item.icon}
-              </div>
+              <div className={styles.menuIcon}>{item.icon}</div>
               <div className={styles.menuInfo}>
                 <h3>{item.label}</h3>
               </div>
-              {activeSection === item.id && <div className={styles.activeIndicator}></div>}
             </div>
           ))}
         </div>
 
-        {/* Lado Direito: Conteúdo */}
         <div className={styles.contentPanel}>
           {renderContent()}
 
           <div className={styles.contentFooter}>
             <button
-              className={styles.btnSave}
+              className="btn-primary"
               onClick={onSave}
               disabled={loading}
+              style={{ padding: '12px 40px' }}
             >
-              <FaSave /> {loading ? 'Salvando...' : 'Salvar Alterações'}
+              <FaSave /> {loading ? 'A processar...' : 'Guardar Alterações'}
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

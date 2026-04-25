@@ -1,36 +1,80 @@
-import React from 'react';
-import { FaCalendarAlt, FaCheckCircle, FaSpinner, FaExclamationTriangle, FaEllipsisV } from 'react-icons/fa';
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  FaCalendarAlt, FaCheckCircle, FaSpinner, FaExclamationTriangle,
+  FaEllipsisV, FaChartLine, FaClipboardList, FaExclamationCircle
+} from 'react-icons/fa';
+import { AuthContext } from '../../../context/AuthContext';
 import styles from './Status.module.css';
 
 export default function Status() {
-  const dados = [];
+  const { getApiUrl } = useContext(AuthContext);
+  const [stats, setStats] = useState({
+    totalEvaluations: 0,
+    avgScore: '0.0',
+    pending: 0
+  });
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+      if (!token) return;
+      try {
+        const [statsRes, evalsRes] = await Promise.all([
+          fetch(getApiUrl('/api/evaluations/my-stats'), { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(getApiUrl('/api/evaluations/my-evaluations'), { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (evalsRes.ok) setEvaluations(await evalsRes.json());
+      } catch (e) {
+        console.error("Erro ao buscar dados de status:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [getApiUrl]);
 
   const getStatusConfig = (status) => {
-    switch (status) {
-      case 'Concluído': return { className: styles.concluido, icon: <FaCheckCircle /> };
-      case 'Em Aberto': return { className: styles.emAberto, icon: <FaSpinner className={styles.spin} /> };
-      case 'Pendente': return { className: styles.pendente, icon: <FaExclamationTriangle /> };
-      default: return { className: '', icon: null };
-    }
+    // Mapear qualitativo do backend para o status da tabela
+    if (status === 'Pendente') return { className: styles.pendente, icon: <FaExclamationTriangle />, text: 'Pendente' };
+    return { className: styles.concluido, icon: <FaCheckCircle />, text: 'Concluído' };
   };
 
-  const getFreqClass = (freq) => {
-    switch (freq) {
-      case 'Diário': return styles.freqDiario;
-      case 'Semanal': return styles.freqSemanal;
-      case 'Mensal': return styles.freqMensal;
-      case 'Trimestral': return styles.freqTrimestral;
-      case 'Semestral': return styles.freqSemestral;
-      case 'Anual': return styles.freqAnual;
-      default: return '';
-    }
-  };
+  if (loading) return <div className={styles.loading}>Carregando status...</div>;
 
   return (
     <div className={styles.container}>
       <div className={styles.pageHeader}>
         <h2>Status das Avaliações</h2>
-        <p>Acompanhe detalhadamente o progresso de todos os seus ciclos avaliativos.</p>
+        <p>Acompanhe detalhadamente o progresso e desempenho de todos os seus ciclos.</p>
+      </div>
+
+      {/* Stats Summary Cards */}
+      <div className={styles.statsRow}>
+        <div className={styles.statMiniCard}>
+          <div className={`${styles.iconCircle} ${styles.blue}`}><FaClipboardList /></div>
+          <div className={styles.statInfo}>
+            <span className={styles.statVal}>{stats.totalEvaluations}</span>
+            <span className={styles.statLab}>Total Avaliações</span>
+          </div>
+        </div>
+        <div className={styles.statMiniCard}>
+          <div className={`${styles.iconCircle} ${styles.green}`}><FaChartLine /></div>
+          <div className={styles.statInfo}>
+            <span className={styles.statVal}>{stats.avgScore}</span>
+            <span className={styles.statLab}>Média de Desempenho</span>
+          </div>
+        </div>
+        <div className={styles.statMiniCard}>
+          <div className={`${styles.iconCircle} ${styles.orange}`}><FaExclamationCircle /></div>
+          <div className={styles.statInfo}>
+            <span className={styles.statVal}>{stats.absencesCount || 0}</span>
+            <span className={styles.statLab}>Faltas (Presença)</span>
+          </div>
+        </div>
       </div>
 
       <div className={styles.tableCard}>
@@ -38,61 +82,50 @@ export default function Status() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Ciclo / Frequência</th>
-                <th>Período de Avaliação</th>
-                <th>Progresso</th>
+                <th>Ciclo / Tipo</th>
+                <th>Data de Realização</th>
+                <th>Resultado Qualitativo</th>
                 <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Nota</th>
+                <th style={{ textAlign: 'center' }}>Nota (Média)</th>
                 <th style={{ width: '50px' }}></th>
               </tr>
             </thead>
             <tbody>
-              {dados.length === 0 ? (
+              {evaluations.length === 0 ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '50px', color: '#64748b' }}>
-                    Nenhum ciclo de avaliação encontrado para este período.
+                    Nenhuma avaliação registrada até o momento.
                   </td>
                 </tr>
               ) : (
-                dados.map((item) => {
-                  const config = getStatusConfig(item.status);
+                evaluations.map((item, idx) => {
+                  const config = getStatusConfig(item.status || 'Concluído');
                   return (
-                    <tr key={item.id}>
+                    <tr key={idx}>
                       <td>
                         <div className={styles.cycleInfo}>
-                          <span className={`${styles.freqBadge} ${getFreqClass(item.freq)}`}>{item.freq}</span>
-                          <span className={styles.cycleName}>{item.ciclo}</span>
-                          <span className={styles.cycleDesc}>{item.tipo}</span>
+                          <span className={`${styles.freqBadge} ${styles.freqMensal}`}>AVALIAÇÃO</span>
+                          <span className={styles.cycleName}>{item.evento === 'avaliacao' ? 'Performance Global' : item.evento}</span>
+                          <span className={styles.cycleDesc}>Sistema IPM360</span>
                         </div>
                       </td>
                       <td>
-                        <div className={styles.dateRange}>
-                          <div>
-                            <span className={styles.dateLabel}>Início:</span>
-                            <span className={styles.dateValue}>{item.inicio}</span>
-                          </div>
-                          <div style={{ marginTop: '4px' }}>
-                            <span className={styles.dateLabel}>Término:</span>
-                            <span className={styles.dateValue} style={{ color: '#ef4444' }}>{item.fim}</span>
-                          </div>
+                        <div className={styles.dateValue}>
+                          <FaCalendarAlt />
+                          {new Date(item.data).toLocaleDateString('pt-BR')}
                         </div>
                       </td>
                       <td>
-                        <div className={styles.progressWrapper}>
-                          <div className={styles.progressTrack}>
-                            <div className={styles.progressFill} style={{ width: `${item.progresso}%` }}></div>
-                          </div>
-                          <span className={styles.progressLabel}>{item.progresso}% Completo</span>
-                        </div>
+                        <span className={styles.qualitativeText}>{item.resultadoQualitativo}</span>
                       </td>
                       <td>
                         <span className={`${styles.badge} ${config.className}`}>
-                          {config.icon} {item.status}
+                          {config.icon} {config.text}
                         </span>
                       </td>
                       <td align="center">
-                        <div className={`${styles.notaBox} ${item.nota === '-' ? styles.notaEmpty : ''}`}>
-                          {item.nota}
+                        <div className={styles.notaBox}>
+                          {Number(item.score || 0).toFixed(1)}
                         </div>
                       </td>
                       <td>

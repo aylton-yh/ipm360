@@ -14,6 +14,13 @@ export default function CadastrarFuncionario() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addEmployee, updateEmployee, addHistoryEvent, employees, departments } = useContext(EmployeeContext);
+  const { getApiUrl } = useContext(AuthContext);
+
+  const yesterday = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }, []);
 
   const editingEmployee = location.state?.employee;
 
@@ -36,14 +43,9 @@ export default function CadastrarFuncionario() {
     password: ''
   });
 
-  // Função para gerar senha automática
+  // Função para gerar senha automática (4 dígitos entre 1000 e 9999)
   const generatePassword = () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
-    let pass = "";
-    for (let i = 0; i < 10; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pass;
+    return Math.floor(1000 + Math.random() * 9000).toString();
   };
 
   useEffect(() => {
@@ -73,7 +75,34 @@ export default function CadastrarFuncionario() {
   }, [selectedDeptData]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Restrições em Tempo Real
+    if (name === 'nome') {
+      const filtered = value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '').slice(0, 100);
+      setFormData({ ...formData, [name]: filtered });
+      return;
+    }
+
+    if (name === 'bi') {
+      const filtered = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 14);
+      setFormData({ ...formData, [name]: filtered });
+      return;
+    }
+
+    if (name === 'telefone') {
+      const filtered = value.replace(/\D/g, '').slice(0, 9);
+      setFormData({ ...formData, [name]: filtered });
+      return;
+    }
+
+    if (name === 'username') {
+      const filtered = value.replace(/[^a-zA-Z]/g, '').toLowerCase().slice(0, 20);
+      setFormData({ ...formData, [name]: filtered });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async () => {
@@ -101,6 +130,29 @@ export default function CadastrarFuncionario() {
 
     if (missingFields.length > 0) {
       alert(`Por favor, preencha os seguintes campos obrigatórios:\n- ${missingFields.map(f => f.label).join('\n- ')}`);
+      return;
+    }
+
+    // 2. Validações Específicas
+    if (formData.bi.length !== 14) {
+      alert("O BI deve ter exatamente 14 caracteres.");
+      return;
+    }
+
+    if (formData.telefone.length !== 9) {
+      alert("O telefone deve ter exatamente 9 dígitos.");
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      alert("O e-mail deve ser válido (conter '@').");
+      return;
+    }
+
+    // Validar Formato de Residência: País, Província, Município, Bairro
+    const enderecoParts = formData.endereco.split(',').map(p => p.trim());
+    if (enderecoParts.length < 4) {
+      alert("O endereço deve seguir o formato: País, Província, Município, Bairro");
       return;
     }
 
@@ -167,7 +219,7 @@ export default function CadastrarFuncionario() {
       <div className="page-header">
         <div>
           <h1 className="page-title">{editingEmployee ? 'Editar Funcionário' : 'Novo Funcionário'}</h1>
-          <p style={{ color: '#64748b' }}>{editingEmployee ? 'Atualize os dados do colaborador' : 'Preencha os dados completos para admissão'}</p>
+          <p style={{ color: '#64748b' }}>{editingEmployee ? 'Atualize os dados do funcionário' : 'Preencha os dados completos para admissão'}</p>
         </div>
       </div>
 
@@ -181,7 +233,7 @@ export default function CadastrarFuncionario() {
                 <label>Nome Completo</label>
                 <div className={styles.inputWrapper}>
                   <FaUser className={styles.icon} />
-                  <input type="text" placeholder="Nome do funcionário" name="nome" onChange={handleChange} />
+                  <input type="text" placeholder="Nome do funcionário" name="nome" value={formData.nome || ''} onChange={handleChange} />
                 </div>
               </div>
 
@@ -189,7 +241,7 @@ export default function CadastrarFuncionario() {
                 <label>BI / Passaporte</label>
                 <div className={styles.inputWrapper}>
                   <FaIdCard className={styles.icon} />
-                  <input type="text" placeholder="000000000LA000" name="bi" onChange={handleChange} />
+                  <input type="text" placeholder="000000000LA000" name="bi" value={formData.bi || ''} onChange={handleChange} />
                 </div>
               </div>
 
@@ -223,7 +275,7 @@ export default function CadastrarFuncionario() {
                 <label>Data de Nascimento</label>
                 <div className={styles.inputWrapper}>
                   <FaCalendarAlt className={styles.icon} />
-                  <input type="date" name="nascimento" onChange={handleChange} />
+                  <input type="date" name="nascimento" value={formData.nascimento || ''} onChange={handleChange} max={yesterday} />
                 </div>
               </div>
 
@@ -231,7 +283,7 @@ export default function CadastrarFuncionario() {
                 <label>Local de Residência</label>
                 <div className={styles.inputWrapper}>
                   <FaMapMarkerAlt className={styles.icon} />
-                  <input type="text" placeholder="Cidade, Bairro" name="endereco" onChange={handleChange} />
+                  <input type="text" placeholder="País, Província, Município, Bairro" name="endereco" value={formData.endereco || ''} onChange={handleChange} />
                 </div>
               </div>
 
@@ -239,7 +291,7 @@ export default function CadastrarFuncionario() {
                 <label>Telefone</label>
                 <div className={styles.inputWrapper}>
                   <FaPhone className={styles.icon} />
-                  <input type="tel" placeholder="+244 9..." name="telefone" onChange={handleChange} />
+                  <input type="tel" placeholder="+244 9..." name="telefone" value={formData.telefone || ''} onChange={handleChange} />
                 </div>
               </div>
 
@@ -247,7 +299,7 @@ export default function CadastrarFuncionario() {
                 <label>Email Pessoal</label>
                 <div className={styles.inputWrapper}>
                   <FaEnvelope className={styles.icon} />
-                  <input type="email" placeholder="email@exemplo.com" name="email" onChange={handleChange} />
+                  <input type="email" placeholder="email@exemplo.com" name="email" value={formData.email || ''} onChange={handleChange} />
                 </div>
               </div>
             </div>
@@ -272,7 +324,7 @@ export default function CadastrarFuncionario() {
                   <label>Número de Agente</label>
                   <div className={styles.inputWrapper}>
                     <FaIdCard className={styles.icon} />
-                    <input type="text" placeholder="Nº Agente Docente" name="num_agente" onChange={handleChange} />
+                    <input type="text" placeholder="Nº Agente Docente" name="num_agente" value={formData.num_agente || ''} onChange={handleChange} />
                   </div>
                 </div>
               )}
@@ -301,7 +353,7 @@ export default function CadastrarFuncionario() {
                 <label>Data de Admissão</label>
                 <div className={styles.inputWrapper}>
                   <FaCalendarAlt className={styles.icon} />
-                  <input type="date" name="admissao" onChange={handleChange} />
+                  <input type="date" name="admissao" value={formData.admissao || ''} onChange={handleChange} max={yesterday} />
                 </div>
               </div>
 
@@ -311,7 +363,7 @@ export default function CadastrarFuncionario() {
                 <label>Status</label>
                 <div className={styles.inputWrapper}>
                   <FaToggleOn className={styles.icon} />
-                  <select name="status" onChange={handleChange}>
+                  <select name="status" onChange={handleChange} value={formData.status || 'Ativo'}>
                     <option value="Ativo">Ativo</option>
                     <option value="Inativo">Inativo</option>
                     <option value="Férias">Férias</option>
@@ -367,7 +419,13 @@ export default function CadastrarFuncionario() {
           <div className={`${styles.photoCard} card-modern`}>
             <h3>Foto de Perfil</h3>
             <div className={styles.photoArea}>
-              <img src={foto || "https://via.placeholder.com/150"} alt="Preview" />
+              <img
+                src={
+                  foto ? (foto.startsWith('data:') ? foto : getApiUrl(`/${foto}`))
+                    : "https://via.placeholder.com/150"
+                }
+                alt="Preview"
+              />
               <label htmlFor="upload-foto" className={styles.uploadBtn}>
                 <FaCamera />
               </label>

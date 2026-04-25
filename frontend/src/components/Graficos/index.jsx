@@ -4,6 +4,7 @@ import { Chart, registerables } from 'chart.js';
 import styles from './Graficos.module.css';
 import { useContext } from 'react';
 import { EmployeeContext } from '../../context/EmployeeContext';
+import { AuthContext } from '../../context/AuthContext';
 
 Chart.register(...registerables);
 
@@ -98,7 +99,64 @@ const optionsStatus = {
 
 export default function Graficos() {
   const { history } = useContext(EmployeeContext);
+  const { theme } = useContext(AuthContext);
   const evaluations = history.filter(h => h.tipo === 'avaliacao');
+
+  // Update Chart.js defaults based on theme
+  React.useEffect(() => {
+    Chart.defaults.color = theme === 'dark' ? '#cbd5e1' : '#64748b';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+  }, [theme]);
+
+  const gridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f1f5f9';
+  const tooltipBg = theme === 'dark' ? '#1e293b' : '#0f172a';
+
+  const optionsWave = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        align: 'end',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+        }
+      },
+      tooltip: {
+        backgroundColor: tooltipBg,
+        titleColor: '#e2e8f0',
+        bodyColor: '#e2e8f0',
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b' }
+      },
+      y: {
+        grid: { borderDash: [4, 4], color: gridColor },
+        border: { display: false },
+        min: 0,
+        max: 20,
+        ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b' }
+      },
+    },
+    interaction: { mode: 'index', intersect: false },
+  };
+
+  const optionsStatus = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '85%',
+    plugins: { legend: { display: false } },
+  };
 
   // 1. Processar dados para o Wave Chart (Média de performance por mês)
   const currentYear = new Date().getFullYear();
@@ -129,11 +187,11 @@ export default function Graficos() {
         backgroundColor: (context) => {
           const ctx = context.chart.ctx;
           const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-          gradient.addColorStop(0, 'rgba(14, 165, 233, 0.4)');
+          gradient.addColorStop(0, theme === 'dark' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(14, 165, 233, 0.4)');
           gradient.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
           return gradient;
         },
-        borderColor: '#0ea5e9',
+        borderColor: theme === 'dark' ? '#10b981' : '#0ea5e9',
         borderWidth: 3,
         tension: 0.4,
         pointRadius: 0,
@@ -143,7 +201,7 @@ export default function Graficos() {
         label: `Performance ${currentYear - 1}`,
         data: processMonthlyData(currentYear - 1),
         fill: false,
-        borderColor: '#cbd5e1',
+        borderColor: theme === 'dark' ? 'rgba(255,255,255,0.2)' : '#cbd5e1',
         borderWidth: 2,
         borderDash: [5, 5],
         tension: 0.4,

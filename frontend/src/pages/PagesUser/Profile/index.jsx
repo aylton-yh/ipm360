@@ -33,13 +33,17 @@ export default function Profile() {
             skills: Array.isArray(currentUser.skills) ? currentUser.skills.join(', ') : (currentUser.skills || ''),
             sobre: currentUser.sobre || '',
             foto: currentUser.foto || null,
-            numeroAgente: currentUser.numeroAgente || ''
+            numeroAgente: currentUser.numeroAgente || '',
+            nacionalidade: currentUser.nacionalidade || '',
+            naturalidade: currentUser.naturalidade || '',
+            formacao_academica: currentUser.formacao_academica || '',
+            idiomas: currentUser.idiomas || ''
          });
       }
    }, [currentUser]);
 
    const user = {
-      nome: currentUser?.nome || "Colaborador",
+      nome: currentUser?.nome || "Funcionário",
       cargo: currentUser?.cargo || "Cargo não definido",
       email: currentUser?.email || "email@exemplo.com",
       telefone: currentUser?.telefone || "---",
@@ -51,6 +55,10 @@ export default function Profile() {
       nascimento: currentUser?.nascimento || "---",
       sexo: currentUser?.sexo || "---",
       estadoCivil: currentUser?.estadoCivil || "---",
+      nacionalidade: currentUser?.nacionalidade || "---",
+      naturalidade: currentUser?.naturalidade || "---",
+      formacao: currentUser?.formacao_academica || "---",
+      idiomas: currentUser?.idiomas || "---",
       numeroAgente: currentUser?.numeroAgente || "",
       bio: currentUser?.sobre || "Bio não cadastrada.",
       skills: Array.isArray(currentUser?.skills) ? currentUser.skills : (typeof currentUser?.skills === 'string' ? currentUser.skills.split(',').map(s => s.trim()) : [])
@@ -62,21 +70,25 @@ export default function Profile() {
       return dept ? dept.seccoes || [] : [];
    }, [editData.departamento, departments]);
 
-   const handleSaveProfile = () => {
-      // Converter skills de string para array se necessário ao salvar, ou manter string se backend preferir
-      // Aqui vamos manter compatibilidade com o que AuthContext espera
-      const formattedData = {
+   const handleSaveProfile = async () => {
+      // Sincronizar dados com o backend através do AuthContext
+      const result = await updateCurrentUser({
          ...editData,
-         skills: editData.skills // AuthContext lida com isso ou updateCurrentUser
-      };
+         nome_completo: editData.nome,
+         estado_civil: editData.estadoCivil,
+         departamento: editData.departamento || editData.dept
+      });
 
-      updateCurrentUser(formattedData);
-      // Sincroniza também com a lista que o admin vê
-      if (editData.id || editData.bi) {
-         updateEmployee(editData.id || editData.bi, formattedData);
+      if (result?.success) {
+         // Sincroniza também com a lista que o admin vê (opcional, já que o backend já syncou funcionario)
+         // if (editData.id || editData.bi) {
+         //    updateEmployee(editData.id || editData.bi, editData);
+         // }
+         setIsEditing(false);
+         alert("Perfil atualizado com sucesso!");
+      } else {
+         alert(result?.message || "Erro ao atualizar perfil no servidor.");
       }
-      setIsEditing(false);
-      alert("Perfil atualizado com sucesso!");
    };
 
    const handlePhotoChange = (e) => {
@@ -121,8 +133,11 @@ export default function Profile() {
                </div>
 
                <div className={styles.userInfo}>
-                  <h2 className={styles.userName}>{user.nome}</h2>
-                  <span className={styles.userRole}>{user.cargo}</span>
+                  <h2 className={styles.userName}>{currentUser?.nome_completo || user.nome}</h2>
+                  <div className={styles.userRoleBadge}>
+                     <span className={styles.userRole}>{user.cargo}</span>
+                     <span className={styles.userDept}>{user.departamento}</span>
+                  </div>
                   <span className={styles.statusBadge}>Ativo</span>
 
                   <div className={styles.contactList}>
@@ -134,6 +149,15 @@ export default function Profile() {
                      </div>
                      <div className={styles.contactItem}>
                         <FaMapMarkerAlt /> {user.local}
+                     </div>
+                     <div className={styles.contactItem}>
+                        <FaUserShield /> BI: {user.bi}
+                     </div>
+                     <div className={styles.contactItem}>
+                        <FaUser /> {user.sexo} • {user.nascimento}
+                     </div>
+                     <div className={styles.contactItem}>
+                        <FaCommentDots /> {user.estadoCivil}
                      </div>
                   </div>
 
@@ -165,6 +189,10 @@ export default function Profile() {
                               <input className={styles.editInput} value={editData.nome || ''} onChange={e => setEditData({ ...editData, nome: e.target.value })} />
                            </div>
                            <div className={styles.infoField}>
+                              <label>BI / Passaporte</label>
+                              <input className={styles.editInput} value={editData.bi || ''} onChange={e => setEditData({ ...editData, bi: e.target.value })} />
+                           </div>
+                           <div className={styles.infoField}>
                               <label>Data de Nascimento</label>
                               <input className={styles.editInput} type="date" value={editData.nascimento || ''} onChange={e => setEditData({ ...editData, nascimento: e.target.value })} />
                            </div>
@@ -190,7 +218,7 @@ export default function Profile() {
                               <label>Telefone</label>
                               <input className={styles.editInput} value={editData.telefone || ''} onChange={e => setEditData({ ...editData, telefone: e.target.value })} />
                            </div>
-                           <div className={styles.infoField}>
+                           <div className={styles.infoField} style={{ gridColumn: 'span 2' }}>
                               <label>Endereço</label>
                               <input className={styles.editInput} value={editData.endereco || ''} onChange={e => setEditData({ ...editData, endereco: e.target.value })} />
                            </div>
@@ -198,7 +226,7 @@ export default function Profile() {
                      </div>
 
                      <div className={styles.cardSection}>
-                        <h3 className={styles.sectionTitle}><FaBriefcase /> Informações Profissionais</h3>
+                        <h3 className={styles.sectionTitle}><FaBriefcase /> Trajetória Profissional</h3>
                         <div className={styles.infoGrid}>
                            <div className={styles.infoField}>
                               <label>Departamento</label>
@@ -211,8 +239,16 @@ export default function Profile() {
                               <label>Função / Cargo</label>
                               <select className={styles.editSelect} value={editData.cargo || ''} onChange={e => setEditData({ ...editData, cargo: e.target.value })} disabled={!editData.departamento}>
                                  <option value="">Selecione...</option>
-                                 {rolesDisponiveis.map((r, i) => <option key={i} value={r}>{r}</option>)}
+                                 {rolesDisponiveis.map((r, i) => (
+                                    <option key={i} value={typeof r === 'object' ? r.nome : r}>
+                                       {typeof r === 'object' ? r.nome : r}
+                                    </option>
+                                 ))}
                               </select>
+                           </div>
+                           <div className={styles.infoField}>
+                              <label>Data de Admissão</label>
+                              <input className={styles.editInput} type="date" value={editData.admissao || ''} onChange={e => setEditData({ ...editData, admissao: e.target.value })} />
                            </div>
                            {editData.departamento === 'Docência' && (
                               <div className={styles.infoField}>
@@ -220,13 +256,29 @@ export default function Profile() {
                                  <input className={styles.editInput} value={editData.numeroAgente || ''} onChange={e => setEditData({ ...editData, numeroAgente: e.target.value })} />
                               </div>
                            )}
-                           <div className={styles.infoField}>
-                              <label>BI / Passaporte</label>
-                              <input className={styles.editInput} value={editData.bi || ''} onChange={e => setEditData({ ...editData, bi: e.target.value })} />
+                        </div>
+                     </div>
+
+                     <div className={styles.cardSection}>
+                        <h3 className={styles.sectionTitle}><FaGraduationCap /> Formação & Idiomas</h3>
+                        <div className={styles.infoGrid}>
+                           <div className={styles.infoField} style={{ gridColumn: 'span 2' }}>
+                              <label>Formação Acadêmica</label>
+                              <input
+                                 className={styles.editInput}
+                                 placeholder="Ex: Licenciatura em Gestão de Empresas"
+                                 value={editData.formacao_academica || ''}
+                                 onChange={e => setEditData({ ...editData, formacao_academica: e.target.value })}
+                              />
                            </div>
-                           <div className={styles.infoField}>
-                              <label>Data de Admissão</label>
-                              <input className={styles.editInput} type="date" value={editData.admissao || ''} onChange={e => setEditData({ ...editData, admissao: e.target.value })} />
+                           <div className={styles.infoField} style={{ gridColumn: 'span 2' }}>
+                              <label>Idiomas</label>
+                              <input
+                                 className={styles.editInput}
+                                 placeholder="Ex: Português (Nativo), Inglês (Básico)"
+                                 value={editData.idiomas || ''}
+                                 onChange={e => setEditData({ ...editData, idiomas: e.target.value })}
+                              />
                            </div>
                         </div>
                      </div>
@@ -264,7 +316,7 @@ export default function Profile() {
                      </div>
 
                      <div className={styles.cardSection}>
-                        <h3 className={styles.sectionTitle}><FaBriefcase /> Informações Profissionais</h3>
+                        <h3 className={styles.sectionTitle}><FaBriefcase /> Trajetória Profissional</h3>
                         <div className={styles.infoGrid}>
                            <div className={styles.infoField}>
                               <label>Departamento</label>
@@ -275,24 +327,8 @@ export default function Profile() {
                               <p>{user.cargo}</p>
                            </div>
                            <div className={styles.infoField}>
-                              <label>BI / Passaporte</label>
-                              <p>{user.bi}</p>
-                           </div>
-                           <div className={styles.infoField}>
                               <label>Data de Admissão</label>
                               <p>{user.admissao}</p>
-                           </div>
-                           <div className={styles.infoField}>
-                              <label>Gênero</label>
-                              <p>{user.sexo}</p>
-                           </div>
-                           <div className={styles.infoField}>
-                              <label>Data de Nascimento</label>
-                              <p>{user.nascimento}</p>
-                           </div>
-                           <div className={styles.infoField}>
-                              <label>Estado Civil</label>
-                              <p>{user.estadoCivil}</p>
                            </div>
                            {user.departamento === 'Docência' && user.numeroAgente && (
                               <div className={styles.infoField}>
@@ -300,6 +336,20 @@ export default function Profile() {
                                  <p>{user.numeroAgente}</p>
                               </div>
                            )}
+                        </div>
+                     </div>
+
+                     <div className={styles.cardSection}>
+                        <h3 className={styles.sectionTitle}><FaGraduationCap /> Formação & Idiomas</h3>
+                        <div className={styles.infoGrid}>
+                           <div className={styles.infoField} style={{ gridColumn: 'span 2' }}>
+                              <label>Formação Acadêmica</label>
+                              <p>{user.formacao}</p>
+                           </div>
+                           <div className={styles.infoField} style={{ gridColumn: 'span 2' }}>
+                              <label>Idiomas</label>
+                              <p>{user.idiomas}</p>
+                           </div>
                         </div>
                      </div>
 

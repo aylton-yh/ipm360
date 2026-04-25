@@ -37,9 +37,10 @@ exports.getHistory = async (req, res) => {
 exports.saveMessage = async (msg) => {
     try {
         const [result] = await db.query(
-            `INSERT INTO chat_message (sender_name, sender_role, sender_photo, tipo_mensagem, conteudo, metadata, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO chat_message (sender_id, sender_name, sender_role, sender_photo, tipo_mensagem, conteudo, metadata, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                msg.sender_id,
                 msg.sender_name,
                 msg.sender_role,
                 msg.sender_photo || null,

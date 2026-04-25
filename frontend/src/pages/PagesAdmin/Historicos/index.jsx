@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
-import { FaDownload, FaFilter, FaSearch, FaRegCalendarAlt, FaClipboardCheck, FaTrophy, FaUserEdit, FaExclamationCircle, FaTimes, FaUserTie, FaFilePdf, FaFileExcel, FaChevronDown, FaUserPlus, FaTrash } from 'react-icons/fa';
+import { FaDownload, FaFilter, FaSearch, FaRegCalendarAlt, FaClipboardCheck, FaTrophy, FaUserEdit, FaExclamationCircle, FaTimes, FaUserTie, FaFilePdf, FaFileExcel, FaChevronDown, FaUserPlus, FaTrash, FaFileWord } from 'react-icons/fa';
 import styles from './Historicos.module.css';
 import { useNavigate } from 'react-router-dom';
 import { EmployeeContext } from '../../../context/EmployeeContext';
 import { AuthContext } from '../../../context/AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
 
 export default function Historicos() {
   const navigate = useNavigate();
-  const { history, clearHistory, removeHistoryEvent } = useContext(EmployeeContext);
-  const { adminHistory, currentUser, deleteAdminHistoryItem, clearAdminHistory } = useContext(AuthContext);
+  const { history, clearHistory, removeHistoryItem, employees } = useContext(EmployeeContext);
+  const { adminHistory, currentUser, deleteAdminHistoryItem, clearAdminHistory, getApiUrl } = useContext(AuthContext);
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [showFullProfile, setShowFullProfile] = useState(false);
@@ -29,14 +34,32 @@ export default function Historicos() {
       tipo: h.tipo,
       funcionario: h.nome,
       cargo: h.cargo || 'Administrador',
-      dept: h.dept || 'Geral',
+      dept: h.departamento || 'Geral',
+      foto: h.foto,
       resultadoQuantitativo: '-',
       resultadoQualitativo: h.status === 'pending' ? 'Pendente' : (h.status === 'approved' ? 'Aprovado' : 'Recusado'),
       adminData: h // Guardar dados extras se necessário
     }));
 
-    return [...formattedAdminHistory, ...history].sort((a, b) => new Date(b.data) - new Date(a.data));
-  }, [history, adminHistory]);
+    // Mapear history de funcionários para garantir que temos nome, cargo e dept resolvidos
+    const formattedEmployeeHistory = history.map(item => {
+      const empId = item.id_funcionario || item.funcionarioId || item.id_funcionario;
+      const employee = employees.find(e => e.id === parseInt(empId));
+
+      return {
+        ...item,
+        // Se o item já tem esses dados, mantém (fallback), senão busca no funcionário
+        funcionario: item.funcionario || employee?.nome || 'N/A',
+        cargo: item.cargo || employee?.cargo || 'N/A',
+        dept: item.dept || employee?.dept || 'Geral',
+        foto: item.foto || employee?.foto || null,
+        resultadoQuantitativo: item.resultadoQuantitativo || (item.score !== undefined ? item.score : '-'),
+        resultadoQualitativo: item.resultadoQualitativo || (item.tipo === 'avaliacao' ? 'Concluído' : 'Processado')
+      };
+    });
+
+    return [...formattedAdminHistory, ...formattedEmployeeHistory].sort((a, b) => new Date(b.data) - new Date(a.data));
+  }, [history, adminHistory, employees]);
 
   // Logic para filtrar os dados baseados no tempo e pesquisa
   const filteredHistory = historyData.filter(item => {
@@ -106,16 +129,151 @@ export default function Historicos() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleExport = (type) => {
+  const handleExport = async (type) => {
     setShowExportMenu(false);
     setIsExporting(true);
+    const periodLabel = timeFilter === 'all' ? 'Completo' : getTimeLabel(timeFilter).toUpperCase();
+    const fileName = `Historico_IPM360_${periodLabel}_${new Date().toISOString().split('T')[0]}`;
 
-    // Simulação de processamento profissional
-    setTimeout(() => {
+    if (!filteredHistory || filteredHistory.length === 0) {
+      alert('Não há dados no histórico para exportar com os filtros atuais.');
       setIsExporting(false);
-      const periodLabel = timeFilter === 'all' ? 'Completo' : timeFilter.toUpperCase();
-      alert(`RELATÓRIO GERADO COM SUCESSO!\n\nTipo: ${type}\nPeríodo: ${periodLabel}\nTotal de Registros: ${filteredHistory.length}\nAvaliações: ${totalAvaliacoes}\n\nO arquivo "Historico_IPM360_${periodLabel}. ${type.toLowerCase()}" foi salvo na sua pasta de Downloads.`);
-    }, 2000);
+      return;
+    }
+
+    try {
+      if (type === 'PDF') {
+        const doc = new jsPDF();
+
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(40);
+        doc.text('INSTITUTO POLITÉCNICO MAIOMBE - IPM360', 14, 22);
+
+        doc.setFontSize(12);
+        doc.setTextColor(100);
+        doc.text(`Relatório de Histórico de Eventos - Período: ${periodLabel}`, 14, 30);
+        doc.text(`Data de Emissão: ${new Date().toLocaleString()}`, 14, 37);
+
+        const tableData = filteredHistory.map(item => {
+          const formattedDate = item.data ? new Date(item.data).toLocaleDateString() : 'N/A';
+          const qual = item.resultadoQualitativo || (item.evento === 'promocao' || item.evento === 'transferencia' ? 'Concluído' : 'Pendente');
+          const quant = (item.resultadoQuantitativo && item.resultadoQuantitativo !== '-') ? ` (${item.resultadoQuantitativo})` : '';
+
+          return [
+            formattedDate,
+            item.evento || 'Evento',
+            item.funcionario || 'N/A',
+            item.dept || 'Geral',
+            qual + quant
+          ];
+        });
+
+        // Verificação e Chamada Funcional (Mais estável que protótipo)
+        try {
+          autoTable(doc, {
+            startY: 45,
+            head: [['Data', 'Evento', 'Funcionário', 'Departamento', 'Resultado / Status']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [139, 92, 246] }, // Violet primary color
+            styles: { fontSize: 9 }
+          });
+          doc.save(`${fileName}.pdf`);
+        } catch (atError) {
+          console.error("Erro interno autoTable:", atError);
+          throw new Error(`Falha no componente de tabela: ${atError.message}`);
+        }
+
+      } else if (type === 'Excel') {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Histórico');
+
+        worksheet.columns = [
+          { header: 'Data', key: 'data', width: 15 },
+          { header: 'Evento', key: 'evento', width: 25 },
+          { header: 'Funcionário', key: 'funcionario', width: 30 },
+          { header: 'Departamento', key: 'dept', width: 20 },
+          { header: 'Resultado', key: 'resultado', width: 20 }
+        ];
+
+        // Format header
+        worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        worksheet.getRow(1).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF8B5CF6' }
+        };
+
+        filteredHistory.forEach(item => {
+          worksheet.addRow({
+            data: item.data ? new Date(item.data).toLocaleDateString() : 'N/A',
+            evento: item.evento || 'Evento',
+            funcionario: item.funcionario || 'N/A',
+            dept: item.dept || 'Geral',
+            resultado: (item.resultadoQualitativo || 'Pendente') + ((item.resultadoQuantitativo && item.resultadoQuantitativo !== '-') ? ` (${item.resultadoQuantitativo})` : '')
+          });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `${fileName}.xlsx`);
+
+      } else if (type === 'Word') {
+        const tableRows = [
+          new TableRow({
+            children: [
+              new TableCell({ children: [new Paragraph({ text: "DATA", bold: true })], shading: { fill: "f1f5f9" } }),
+              new TableCell({ children: [new Paragraph({ text: "EVENTO", bold: true })], shading: { fill: "f1f5f9" } }),
+              new TableCell({ children: [new Paragraph({ text: "FUNCIONÁRIO", bold: true })], shading: { fill: "f1f5f9" } }),
+              new TableCell({ children: [new Paragraph({ text: "DEPTO", bold: true })], shading: { fill: "f1f5f9" } }),
+              new TableCell({ children: [new Paragraph({ text: "RESULTADO", bold: true })], shading: { fill: "f1f5f9" } }),
+            ],
+          }),
+        ];
+
+        filteredHistory.forEach(item => {
+          tableRows.push(
+            new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph(item.data ? new Date(item.data).toLocaleDateString() : 'N/A')] }),
+                new TableCell({ children: [new Paragraph(item.evento || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(item.funcionario || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(item.dept || 'Geral')] }),
+                new TableCell({ children: [new Paragraph((item.resultadoQualitativo || 'Concluído') + (item.resultadoQuantitativo && item.resultadoQuantitativo !== '-' ? ` (${item.resultadoQuantitativo})` : ''))] }),
+              ],
+            })
+          );
+        });
+
+        const docX = new Document({
+          sections: [{
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "IPM360° - RELATÓRIO DE HISTÓRICO", bold: true, size: 32, color: "8B5CF6" }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+              new Paragraph({ text: `Período: ${periodLabel}`, spacing: { after: 200 }, alignment: AlignmentType.CENTER }),
+              new Paragraph({ text: `Emissão: ${new Date().toLocaleString()}`, spacing: { after: 400 }, alignment: AlignmentType.CENTER }),
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: tableRows,
+              }),
+              new Paragraph({ text: "Documento oficial gerado autonomamente pelo sistema IPM360°.", alignment: AlignmentType.CENTER, spacing: { before: 800 } }),
+            ],
+          }],
+        });
+
+        const blob = await Packer.toBlob(docX);
+        saveAs(blob, `${fileName}.docx`);
+      }
+    } catch (error) {
+      console.error('ERRO_EXPORT_DEFINITIVO:', error);
+      alert(`Erro ao processar o ficheiro: ${error.message || 'Falha na geração'}\n\nDetalhes técnico: ${error.stack?.substring(0, 100)}...`);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleOpenFullProfile = () => {
@@ -148,7 +306,7 @@ export default function Historicos() {
             className={`${styles.exportBtn} ${showExportMenu ? styles.active : ''}`}
             onClick={() => setShowExportMenu(!showExportMenu)}
           >
-            <FaDownload /> Exportar Relatório <FaChevronDown size={12} style={{ marginLeft: 5 }} />
+            <FaDownload /> Exportar <FaChevronDown size={12} style={{ marginLeft: 5 }} />
           </button>
 
           {showExportMenu && (
@@ -158,6 +316,9 @@ export default function Historicos() {
               </button>
               <button onClick={() => handleExport('Excel')} className={styles.exportOption}>
                 <FaFileExcel style={{ color: '#10b981' }} /> Excel
+              </button>
+              <button onClick={() => handleExport('Word')} className={styles.exportOption}>
+                <FaFileWord style={{ color: '#2b5797' }} /> Word
               </button>
             </div>
           )}
@@ -175,7 +336,7 @@ export default function Historicos() {
             }}
             style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '10px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}
           >
-            <FaTrash size={14} /> Limpar Tudo
+            <FaTrash size={14} /> Limpar
           </button>
         )}
       </div>
@@ -202,7 +363,7 @@ export default function Historicos() {
 
       <div className={`${styles.tableCard} card-modern`}>
         <div className={styles.toolbar}>
-          <div className={styles.searchBox} ref={searchRef}>
+          <div className={styles.searchWrapper} ref={searchRef}>
             <FaSearch className={styles.searchIcon} />
             <input
               type="text"
@@ -268,7 +429,8 @@ export default function Historicos() {
               {filteredHistory.map((item) => (
                 <tr key={item.id}>
                   <td className={styles.dateCell}>
-                    {new Date(item.data).toLocaleDateString()}
+                    <div style={{ fontWeight: '600' }}>{new Date(item.data).toLocaleDateString()}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>{new Date(item.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                   </td>
                   <td>
                     <div className={styles.eventCell}>
@@ -278,7 +440,18 @@ export default function Historicos() {
                   </td>
                   <td>
                     <div className={styles.userCell}>
-                      <div className={styles.userAvatar}>{item.funcionario.charAt(0)}</div>
+                      <div className={styles.userAvatar}>
+                        {item.foto && typeof item.foto === 'string' && item.foto.length > 5 ? (
+                          <img
+                            src={(item.foto.startsWith('data:image') || item.foto.startsWith('http')) ? item.foto : getApiUrl('/' + item.foto)}
+                            alt={item.funcionario}
+                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          item.funcionario.charAt(0)
+                        )}
+                      </div>
                       <div>
                         <span className={styles.userName}>{item.funcionario}</span>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{item.cargo}</div>
@@ -289,13 +462,13 @@ export default function Historicos() {
                     <span className={styles.deptTag}>{item.dept}</span>
                   </td>
                   <td>
-                    <span className={`${styles.statusBadge} ${selectedItem?.resultadoQualitativo === 'Pendente' ? styles.pending : styles.success}`}>
-                      {item.resultadoQualitativo} ({item.resultadoQuantitativo})
+                    <span className={`${styles.statusBadge} ${item.resultadoQualitativo === 'Pendente' ? styles.pending : styles.success}`}>
+                      {item.resultadoQualitativo} {item.resultadoQuantitativo !== '-' ? `(${item.resultadoQuantitativo})` : ''}
                     </span>
                   </td>
                   <td align="right">
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                      <button className={styles.detailsBtn} onClick={() => setSelectedItem(item)}>Ver Detalhes</button>
+                      <button className={styles.detailsBtn} onClick={() => setSelectedItem(item)}>Detalhes</button>
                       {currentUser?.role === 'global_admin' && (
                         <button
                           onClick={() => {
@@ -303,7 +476,7 @@ export default function Historicos() {
                               if (item.id.toString().startsWith('admin-')) {
                                 deleteAdminHistoryItem(item.adminData.id);
                               } else {
-                                removeHistoryEvent(item.id);
+                                removeHistoryItem(item.id);
                               }
                             }
                           }}
@@ -331,7 +504,17 @@ export default function Historicos() {
             </button>
 
             <div className={styles.modalHeader}>
-              <div className={styles.modalAvatar}>{selectedItem.funcionario.charAt(0)}</div>
+              <div className={styles.modalAvatar}>
+                {selectedItem.foto && typeof selectedItem.foto === 'string' && selectedItem.foto.length > 5 ? (
+                  <img
+                    src={(selectedItem.foto.startsWith('data:image') || selectedItem.foto.startsWith('http')) ? selectedItem.foto : getApiUrl('/' + selectedItem.foto)}
+                    alt={selectedItem.funcionario}
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  selectedItem.funcionario.charAt(0)
+                )}
+              </div>
               <div>
                 <h2 className={styles.modalTitle}>{selectedItem.funcionario}</h2>
                 <span className={styles.modalSubtitle}>{selectedItem.cargo}</span>
@@ -364,7 +547,7 @@ export default function Historicos() {
 
             <div className={styles.modalFooter}>
               <button className={styles.btnAction} onClick={handleOpenFullProfile}>
-                <FaUserTie /> Perfil Completo
+                <FaUserTie /> Perfil
               </button>
             </div>
           </div>

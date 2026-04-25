@@ -15,7 +15,7 @@ const RadarOptions = {
   scales: {
     r: {
       suggestedMin: 0,
-      suggestedMax: 5,
+      suggestedMax: 20,
       ticks: { display: false },
       grid: { color: '#e2e8f0' },
       pointLabels: { font: { size: 10, weight: '600' }, color: '#64748b' },
@@ -29,36 +29,51 @@ export default function Avaliar() {
   const { t } = useTranslation();
   console.log("DEBUG: AuthContext in Avaliar:", AuthContext); // Debug log
   const navigate = useNavigate();
-  const { addHistoryEvent, employees, departments } = useContext(EmployeeContext);
+  const { addHistoryEvent, employees, departments, history } = useContext(EmployeeContext);
   const { hasPermission } = useContext(AuthContext);
   const [selectedDept, setSelectedDept] = useState('');
   const [funcionario, setFuncionario] = useState('');
 
   // Grupo 1: Comportamental (4 itens)
   const [grupo1, setGrupo1] = useState({
-    pontualidade: 3,
-    assiduidade: 3,
-    adaptacao: 3,
-    relacao_colegas: 3,
+    pontualidade: 10,
+    assiduidade: 10,
+    adaptacao: 10,
+    relacao_colegas: 10,
   });
 
   // Grupo 2: Técnico-Pedagógico (6 itens)
   const [grupo2, setGrupo2] = useState({
-    ensino_aprendizagem: 3,
-    aperfeicoamento: 3,
-    inovacao: 3,
-    responsabilidade: 3,
-    relacao_trabalho: 3,
-    atividades_extra: 3,
+    ensino_aprendizagem: 10,
+    aperfeicoamento: 10,
+    inovacao: 10,
+    responsabilidade: 10,
+    relacao_trabalho: 10,
+    atividades_extra: 10,
   });
 
   // Grupo 3: Profissional (4 itens)
   const [grupo3, setGrupo3] = useState({
-    organizacao: 3,
-    etica: 3,
-    iniciativa: 3,
-    prazos: 3,
+    organizacao: 10,
+    etica: 10,
+    iniciativa: 10,
+    prazos: 10,
   });
+
+  // Faltas (Apenas Docência - max 24)
+  const [faltas, setFaltas] = useState(0);
+
+  // Período de Avaliação (Persistido no localStorage)
+  const [periodo, setPeriodo] = useState(() => {
+    return localStorage.getItem('ipm360_avaliacao_periodo') || 'Mensal';
+  });
+
+  // Salvar período sempre que mudar
+  React.useEffect(() => {
+    localStorage.setItem('ipm360_avaliacao_periodo', periodo);
+  }, [periodo]);
+
+  const currentDate = new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
 
   const labelsMap = {
     // Grupo 1
@@ -81,7 +96,8 @@ export default function Avaliar() {
   };
 
   const selectedEmployee = funcionario ? employees.find(e => e.id === parseInt(funcionario)) : null;
-  const isDocencia = selectedEmployee?.dept === 'Docência';
+  const selectedDeptObj = departments.find(d => d.id === parseInt(selectedDept));
+  const isDocencia = selectedDeptObj?.nome === 'Docência' || selectedEmployee?.dept === 'Docência';
 
   // Unindo dados para o gráfico - Filtramos o grupo 2 se não for Docência
   const allNotas = isDocencia
@@ -104,45 +120,100 @@ export default function Avaliar() {
   const handleChangeG2 = (key, val) => setGrupo2(prev => ({ ...prev, [key]: parseInt(val) }));
   const handleChangeG3 = (key, val) => setGrupo3(prev => ({ ...prev, [key]: parseInt(val) }));
 
-  // Cálculo da Nota Final (Escala 0-20)
+  // Cálculo da Nota Final (Escala 0-20 baseada na média das notas)
   const calcularTotal = () => {
     const soma1 = Object.values(grupo1).reduce((a, b) => a + b, 0);
     const soma2 = isDocencia ? Object.values(grupo2).reduce((a, b) => a + b, 0) : 0;
     const soma3 = Object.values(grupo3).reduce((a, b) => a + b, 0);
-    const somaTotal = soma1 + soma2 + soma3;
 
-    // Total Máximo: 14 critérios se Docência (70 pts), 8 critérios se outros (40 pts)
-    const maxPontos = isDocencia ? 70 : 40;
-    return (somaTotal / maxPontos) * 20;
+    // Opcional: A falta pode abater a nota final aqui se desejado.
+    // Ex: -0.5 valores por cada falta acima de X.
+    let abateCarga = 0;
+    if (isDocencia && faltas > 0) {
+      // Exemplo simples: penaliza a nota total em proporção às faltas
+      // 24 faltas = perda severa (ex: -5 valores finais, configurável caso o IP estabeleça a regra)
+      // abateCarga = (faltas / 24) * 2;
+    }
+
+    const somaTotal = soma1 + soma2 + soma3;
+    const count = isDocencia ? 14 : 8; // 4 + 6 + 4 = 14 para docência.
+
+    let media = (somaTotal / count) - abateCarga;
+    if (media < 0) media = 0;
+    if (media > 20) media = 20;
+
+    return media;
   };
 
-  const notaFinal = calcularTotal().toFixed(1); // 1 casa decimal
+  const notaFinalNum = calcularTotal();
+  const notaFinal = notaFinalNum.toFixed(1);
+
+  const allEvaluations = history.filter(h => h.evento === 'avaliacao');
+  const sumPast = allEvaluations.reduce((acc, curr) => acc + (curr.score || 0), 0);
+  const countPast = allEvaluations.length;
+
+  // Incluir a nota atual no cálculo da média geral em tempo real
+  const mediaGeral = ((sumPast + notaFinalNum) / (countPast + 1)).toFixed(1);
 
   const getQualitativa = (val) => {
-    if (val < 10) return { label: t('rating.mau'), color: '#ef4444' };
-    if (val < 14) return { label: t('rating.razoavel'), color: '#f59e0b' };
-    if (val < 18) return { label: t('rating.bom'), color: '#3b82f6' };
-    return { label: t('rating.muito_bom'), color: '#10b981' };
+    if (val < 10) return { label: 'Mau', color: '#ef4444' };
+    if (val < 14) return { label: 'Razoável', color: '#f59e0b' };
+    if (val < 18) return { label: 'Bom', color: '#3b82f6' };
+    return { label: 'Muito Bom', color: '#10b981' };
   };
 
   const qualitativa = getQualitativa(notaFinal);
 
+  // Funções de Faltas
+  const getFaltasQualitativa = (total) => {
+    if (total >= 18) return { label: 'Mal', color: '#ef4444' };
+    if (total >= 14) return { label: 'Suficiente', color: '#f59e0b' };
+    if (total >= 10) return { label: 'Bom', color: '#3b82f6' };
+    if (total >= 6) return { label: 'Muito Bom', color: '#10b981' };
+    return { label: 'Excelente', color: '#059669' };
+  };
+
+  // Calcular faltas acumuladas no histórico para o funcionário selecionado
+  const faltasAnteriores = history
+    .filter(h => h.funcionarioId === parseInt(funcionario) || h.id_funcionario === parseInt(funcionario))
+    .reduce((acc, curr) => acc + (curr.faltas || 0), 0);
+
+  const totalFaltasComNova = faltasAnteriores + faltas;
+  const faltasQuali = getFaltasQualitativa(faltas);
+
   // Componente auxiliar de Slider
-  const SliderItem = ({ attrKey, val, onChange, label, color }) => (
-    <div className={styles.criteriaItem}>
-      <div className={styles.criteriaHeader}>
-        <span className={styles.criteriaName}>{label}</span>
-        <span className={styles.criteriaValue}>{val} / 5</span>
+  const SliderItem = ({ attrKey, val, onChange, label, color }) => {
+    // Cálculo de cor de fundo baseado no valor (0-20)
+    const getBgColor = (v) => {
+      const alpha = 0.08 + (v * 0.01); // Aumenta opacidade com a nota
+      if (v <= 9) return `rgba(239, 68, 68, ${alpha})`; // Vermelho
+      if (v <= 13) return `rgba(245, 158, 11, ${alpha})`; // Amarelo/Laranja
+      return `rgba(34, 197, 94, ${alpha})`; // Verde
+    };
+
+    return (
+      <div
+        className={styles.criteriaItem}
+        style={{
+          backgroundColor: getBgColor(val),
+          borderLeft: `4px solid ${val >= 14 ? '#22c55e' : val >= 10 ? '#f59e0b' : '#ef4444'}`,
+          transition: 'all 0.3s ease'
+        }}
+      >
+        <div className={styles.criteriaHeader}>
+          <span className={styles.criteriaName}>{label}</span>
+          <span className={styles.criteriaValue}>{val} / 20</span>
+        </div>
+        <input
+          type="range" min="0" max="20" step="1" value={val}
+          className={styles.rangeInput}
+          style={{ accentColor: color }}
+          onChange={(e) => onChange(attrKey, e.target.value)}
+        />
+        <div className={styles.scaleLabels}><span>0</span><span>20</span></div>
       </div>
-      <input
-        type="range" min="0" max="5" step="1" value={val}
-        className={styles.rangeInput}
-        style={{ accentColor: color }}
-        onChange={(e) => onChange(attrKey, e.target.value)}
-      />
-      <div className={styles.scaleLabels}><span>0</span><span>5</span></div>
-    </div>
-  );
+    );
+  };
 
 
 
@@ -172,7 +243,7 @@ export default function Avaliar() {
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('page_title')}</h1>
-          <p style={{ color: '#64748b' }}>{t('page_subtitle')}</p>
+          <p style={{ color: '#64748b', marginTop: '5px' }}>{t('page_subtitle')}</p>
         </div>
       </div>
 
@@ -213,6 +284,46 @@ export default function Avaliar() {
             </div>
           </div>
 
+          <div className="card-modern" style={{ marginBottom: '20px', padding: '20px', display: 'flex', gap: '20px', alignItems: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: '600', marginBottom: '8px' }}>Tempo de Avaliação</label>
+              <select
+                value={periodo}
+                onChange={(e) => setPeriodo(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'white',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#1e293b',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="Diário">Diário</option>
+                <option value="Semanal">Semanal</option>
+                <option value="Mensal">Mensal</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </div>
+            <div style={{
+              padding: '15px 20px',
+              background: 'white',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              textAlign: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ display: 'block', fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Data da Avaliação</span>
+              <span style={{ fontSize: '15px', fontWeight: '700', color: '#3b82f6' }}>{currentDate}</span>
+            </div>
+          </div>
+
           {/* Grupo 1 */}
           <div className="card-modern" style={{ marginBottom: '20px' }}>
             <h3 className={styles.sectionTitle}><FaUserCheck /> {t('behavioral_criteria')}</h3>
@@ -230,7 +341,7 @@ export default function Avaliar() {
 
           {/* Grupo 2 - Apenas para Docência */}
           {isDocencia && (
-            <div className="card-modern">
+            <div className="card-modern" style={{ marginBottom: '20px' }}>
               <h3 className={styles.sectionTitle} style={{ color: '#1565c0' }}><FaChalkboardTeacher /> {t('technical_criteria')}</h3>
               <div className={styles.criteriaList}>
                 {Object.entries(grupo2).map(([key, val]) => (
@@ -286,8 +397,20 @@ export default function Avaliar() {
                   inovacao: isDocencia ? grupo2.inovacao : 0,
                   responsabilidade: isDocencia ? grupo2.responsabilidade : 0,
                   relacao_humanas: isDocencia ? grupo2.relacao_trabalho : 0,
-                  actividades_extras: isDocencia ? grupo2.atividades_extra : 0
+                  actividades_extras: isDocencia ? grupo2.atividades_extra : 0,
+                  faltas: isDocencia ? faltas : 0,
+                  periodo: periodo
                 };
+
+                if (totalFaltasComNova >= 24) {
+                  return alert("Erro: O funcionário atingiu ou ultrapassará o limite de 24 faltas acumuladas. Não é possível salvar esta avaliação.");
+                }
+
+                if (selectedEmployee && selectedEmployee.status !== 'Ativo') {
+                  return alert(`Bloqueio de Avaliação: Não é possível avaliar ${selectedEmployee.nome} pois o colaborador está com status "${selectedEmployee.status}". 
+Funcionários em Férias, Suspensos ou Inativos não podem receber novas avaliações de desempenho. 
+Altere o status para "Ativo" se desejar proceder com a avaliação.`);
+                }
 
                 const result = await addHistoryEvent({
                   tipo: 'avaliacao',
@@ -332,9 +455,15 @@ export default function Avaliar() {
                   <span className={styles.metaLabel}>Admissão</span>
                   <span className={styles.metaValue}>{selectedEmployee.admission || '---'}</span>
                 </div>
-                <div className={styles.metaItem} style={{ gridColumn: '1 / -1' }}>
+                <div className={styles.metaItem}>
                   <span className={styles.metaLabel}>Email</span>
                   <span className={styles.metaValue}>{selectedEmployee.email}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Faltas Acumuladas</span>
+                  <span className={styles.metaValue} style={{ color: faltasAnteriores >= 20 ? '#ef4444' : '#334155' }}>
+                    {faltasAnteriores} / 24
+                  </span>
                 </div>
               </div>
             </div>
@@ -350,17 +479,93 @@ export default function Avaliar() {
             </div>
           </div>
 
+          {/* Novo Card de Faltas - Lado Direito (Apenas Docência) */}
+          {isDocencia && (
+            <div className="card-modern" style={{ marginTop: '20px', padding: '25px', borderLeft: '4px solid #8b5cf6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaChartPie style={{ color: '#8b5cf6' }} /> Carga Tempo / Faltas
+                </h3>
+                <span style={{ fontSize: '12px', background: '#e2e8f0', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Max: 24</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={{ fontSize: '13px', color: '#64748b' }}>Insira o número de faltas (0 a 24)</label>
+                  <div style={{
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    backgroundColor: faltasQuali.color + '20',
+                    color: faltasQuali.color,
+                    border: `1px solid ${faltasQuali.color}`
+                  }}>
+                    {faltasQuali.label}
+                  </div>
+                </div>
+
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  value={faltas}
+                  onChange={(e) => {
+                    let v = parseInt(e.target.value) || 0;
+                    if (v < 0) v = 0;
+                    if (v > 24) v = 24;
+                    setFaltas(v);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    backgroundColor: '#f8fafc',
+                    color: totalFaltasComNova >= 24 ? '#ef4444' : '#1e293b'
+                  }}
+                />
+
+                <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic' }}>
+                  Total Acumulado: <strong>{totalFaltasComNova}</strong> / 24
+                </div>
+
+                {totalFaltasComNova >= 24 && (
+                  <div style={{
+                    color: '#ef4444',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    marginTop: '5px',
+                    padding: '10px',
+                    backgroundColor: '#fee2e2',
+                    borderRadius: '#64748b'
+                  }}>
+                    LIMITE TOTAL ATINGIDO! O funcionário já possui {faltasAnteriores} faltas históricas e o limite máximo permitido é 24.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Novo Card de Classificação */}
           <div className="card-modern" style={{ marginTop: '20px', textAlign: 'center', padding: '30px' }}>
             <h3 className={styles.sectionTitle} style={{ justifyContent: 'center', border: 'none' }}>{t('final_result')}</h3>
 
             <div className={styles.summaryScore} style={{ backgroundColor: qualitativa.color + '20', color: qualitativa.color }}>
-              <span>{t('quantitative_classification')}</span>
+              <span>Média Final</span>
               <strong>{notaFinal} <small style={{ fontSize: '14px', color: '#64748b' }}>/ 20</small></strong>
 
               <div style={{ marginTop: '15px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '15px' }}>
                 <span style={{ marginBottom: '5px' }}>{t('qualitative_classification')}</span>
                 <div className={styles.qualitativeLabel}>{qualitativa.label}</div>
+              </div>
+
+              <div style={{ marginTop: '20px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '15px' }}>
+                <span style={{ marginBottom: '5px', fontSize: '12px', opacity: 0.8 }}>Média Geral dos Funcionários</span>
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--primary-color)' }}>{mediaGeral} / 20</div>
               </div>
             </div>
           </div>

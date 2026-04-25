@@ -105,7 +105,7 @@ export const ChatProvider = ({ children }) => {
 
         const fetchHistory = async () => {
             try {
-                const token = localStorage.getItem('ipm360_token');
+                const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
                 const response = await fetch(getChatUrl('/api/chat/history'), {
                     headers: {
                         'Authorization': `Bearer ${token}`

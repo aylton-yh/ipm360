@@ -1,0 +1,181 @@
+.bellContainer {
+    position: relative;
+}
+
+.bellBtn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.bellBtn:hover {
+    background: var(--bg-tertiary);
+}
+
+.badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-secondary);
+}
+
+.popup {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 320px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.popupHeader {
+    padding: 15px;
+    background: var(--bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.popupHeader h3 {
+    font-size: 14px;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.count {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.notasList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.empty {
+    padding: 30px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.notaItem {
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+}
+
+.notaItem:hover {
+    background: var(--bg-tertiary);
+}
+
+.unread {
+    background: rgba(37, 99, 235, 0.03);
+}
+
+.notaIcon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.notaContent p {
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.time {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.adminActions {
+    margin-top: 10px;
+}
+
+.btnReplyTrigger {
+    background: none;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.replyBox {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.replyBox textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 12px;
+}
+
+.replyBtns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.replyBtns button {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    border: none;
+}
+
+.btnSend {
+    background: var(--accent-primary);
+    color: white;
+}
+
+@media (max-width: 480px) {
+    .popup {
+        position: fixed;
+        top: 60px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+}

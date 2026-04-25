@@ -13,8 +13,15 @@ const PageLoader = () => (
   </div>
 );
 
+// Páginas Públicas
+const PublicLayout = lazy(() => import('./layouts/PublicLayout'));
+const StaticHome = lazy(() => import('./pages/PagesAdmin/PublicPages/StaticHome'));
+const Solucoes = lazy(() => import('./pages/PagesAdmin/PublicPages/Solucoes'));
+const Destaques = lazy(() => import('./pages/PagesAdmin/PublicPages/Destaques'));
+const SobreSistema = lazy(() => import('./pages/PagesAdmin/PublicPages/SobreSistema'));
+const Instituicao = lazy(() => import('./pages/PagesAdmin/PublicPages/Instituicao'));
+
 // Páginas de Autenticação Admin
-const LandingPage = lazy(() => import('./pages/PagesAdmin/LandingPage'));
 const Login = lazy(() => import('./pages/PagesAdmin/Auth/Login'));
 
 // Páginas do Dashboard (Admin)
@@ -31,6 +38,7 @@ const MinhaConta = lazy(() => import('./pages/PagesAdmin/MinhaConta'));
 const Relatorios = lazy(() => import('./pages/PagesAdmin/Relatorios'));
 const Ajuda = lazy(() => import('./pages/PagesAdmin/Ajuda'));
 const ChatGeral = lazy(() => import('./pages/ChatGeral'));
+const Presenca = lazy(() => import('./pages/PagesAdmin/Presenca'));
 
 // Páginas do Usuário
 const UserHome = lazy(() => import('./pages/PagesUser/Home'));
@@ -53,8 +61,16 @@ export default function App() {
           <EmployeeProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* Rotas de Autenticação Admin */}
-                <Route path="/" element={<LandingPage />} />
+                {/* Rotas Públicas */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<StaticHome />} />
+                  <Route path="/solucoes" element={<Solucoes />} />
+                  <Route path="/destaques" element={<Destaques />} />
+                  <Route path="/sobre" element={<SobreSistema />} />
+                  <Route path="/instituicao" element={<Instituicao />} />
+                </Route>
+
+                {/* Autenticação Admin */}
                 <Route path="/login" element={<Login />} />
 
                 {/* Rotas do Dashboard (Admin) - URLs na raiz */}
@@ -72,6 +88,7 @@ export default function App() {
                   <Route path="/relatorios" element={<Relatorios />} />
                   <Route path="/ajuda" element={<Ajuda />} />
                   <Route path="/chat-geral" element={<ChatGeral />} />
+                  <Route path="/presenca" element={<Presenca />} />
                 </Route>
 
                 {/* Rotas do Usuário - URLs na raiz e prefixadas */}

@@ -1,37 +1,39 @@
 .container {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* 2/3 para o gráfico principal */
-  gap: 25px;
-  margin-top: 30px;
+  grid-template-columns: 2fr 1fr;
+  /* 2/3 para o gráfico principal */
+  gap: 12px;
+  margin-top: 15px;
 }
 
 .card {
-  background: white;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border-color);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
 }
 
 .header h3 {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 5px 0;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
 }
 
 .header p {
   margin: 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .select {
@@ -48,13 +50,13 @@
 .waveWrapper {
   flex: 1;
   width: 100%;
-  min-height: 300px;
+  min-height: 180px;
 }
 
 /* Gráfico Rosca */
 .doughnutWrapper {
   position: relative;
-  height: 220px;
+  height: 150px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,9 +69,9 @@
 }
 
 .centerInfo h2 {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
   line-height: 1;
 }
@@ -79,6 +81,15 @@
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.calendarFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
 }
 
 .legendRow {
@@ -92,7 +103,7 @@
   display: flex;
   align-items: center;
   font-size: 12px;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 

@@ -10,12 +10,12 @@
 
 .pageHeader h2 {
   font-size: 1.8rem;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .pageHeader p {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
@@ -27,17 +27,38 @@
 
 .historyItem {
   display: flex;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-  border-left: 4px solid #3b82f6;
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-left: 8px solid #4f46e5;
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.historyItem:nth-child(even) {
+  border-left-color: #ec4899;
+}
+
+.historyItem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
+  pointer-events: none;
 }
 
 .historyItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateX(8px);
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent-soft);
 }
 
 .iconWrapper {
@@ -45,7 +66,7 @@
   align-items: flex-start;
   justify-content: center;
   padding-right: 1.5rem;
-  color: #3b82f6;
+  color: var(--accent-primary);
   font-size: 1.5rem;
   padding-top: 0.25rem;
 }
@@ -65,7 +86,7 @@
 
 .actionTitle {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 
@@ -73,7 +94,7 @@
   display: flex;
   align-items: center;
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .miniIcon {
@@ -81,7 +102,7 @@
 }
 
 .details {
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
@@ -89,11 +110,11 @@
 .ipInfo {
   display: inline-block;
   font-size: 0.75rem;
-  color: #cbd5e1;
-  background: #f8fafc;
+  color: var(--text-muted);
+  background: var(--bg-primary);
   padding: 2px 8px;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .emptyState {
@@ -102,10 +123,10 @@
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 2px dashed #e2e8f0;
-  color: #94a3b8;
+  border: 2px dashed var(--border-color);
+  color: var(--text-muted);
   gap: 1rem;
 }
 
@@ -114,7 +135,7 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .historyItem {
     padding: 1rem;
   }

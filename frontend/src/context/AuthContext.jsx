@@ -45,11 +45,11 @@ const DEFAULT_ROLES = [
     },
     {
         id: 3,
-        nome: 'Colaboradores',
-        descricao: 'Acesso às ferramentas de autoatendimento, portal do colaborador e consultas básicas.',
+        nome: 'Funcionários',
+        descricao: 'Acesso às ferramentas de autoatendimento, portal do funcionário e consultas básicas.',
         color: 'green',
         usersCount: 0,
-        permissoes: ['Portal Colaborador', 'Auto-avaliação', 'Comunicações Pessoais'],
+        permissoes: ['Portal Funcionário', 'Auto-avaliação', 'Comunicações Pessoais'],
         nivel: 'Operacional',
         mfaStatus: 'Opcional',
         sessionLimit: 5,
@@ -69,37 +69,10 @@ const DEFAULT_ROLES = [
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // Usuários Admin cadastrados (Inicia com o Global Admin)
+    // Usuários Admin cadastrados
     const [allAdmins, setAllAdmins] = useState(() => {
         const saved = localStorage.getItem('ipm360_admins');
-        const defaultAdmin = {
-            username: 'Aylton Dinis',
-            password: '2004',
-            nome: 'Aylton Dinis',
-            cargo: 'Administrador Global',
-            role: 'global_admin',
-            id: 'global-1',
-            status: 'approved'
-        };
-
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // Force update the global admin to ensure new credentials are effective
-            const updated = parsed.map(admin =>
-                (admin.id === 'global-1' || admin.role === 'global_admin' || admin.username === 'Aylton Dinis')
-                    ? { ...defaultAdmin, id: admin.id || 'global-1' } // Keep ID but update everything else
-                    : admin
-            ).filter(a => a.username !== 'José Pires' && a.nome !== 'José Pires'); // Remove José Pires explicitly
-
-            // If global admin was somehow deleted or missing from saved, add it back
-            if (!updated.some(a => a.id === 'global-1' || a.role === 'global_admin' || a.username === 'Aylton Dinis')) {
-                updated.unshift(defaultAdmin);
-            }
-
-            return updated;
-        }
-
-        return [defaultAdmin];
+        return saved ? JSON.parse(saved) : [];
     });
 
     // Usuário Logado
@@ -107,6 +80,15 @@ export const AuthProvider = ({ children }) => {
         const saved = localStorage.getItem('ipm360_current_user');
         return saved ? JSON.parse(saved) : null;
     });
+
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('ipm360_theme') || 'dark';
+    });
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('ipm360_theme', theme);
+    }, [theme]);
 
     const getApiUrl = (endpoint) => {
         const host = window.location.hostname;
@@ -119,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const fetchMe = async () => {
-        const token = localStorage.getItem('ipm360_token');
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
         if (!token) return;
 
         try {
@@ -130,21 +112,66 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setCurrentUser(prev => ({ ...prev, ...data }));
-            } else {
-                // Se o token for inválido/expirado, limpamos
-                if (response.status === 401) {
-                    localStorage.removeItem('ipm360_token');
-                    setCurrentUser(null);
-                }
+                if (data.theme) setTheme(data.theme);
+            } else if (response.status === 401 || response.status === 404) {
+                localStorage.removeItem('ipm360_token');
+                sessionStorage.removeItem('ipm360_token');
+                setCurrentUser(null);
             }
         } catch (e) {
             console.error("Erro ao buscar dados do utilizador:", e);
         }
     };
 
+    const fetchSystemData = async () => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+
+        try {
+            const [adminsRes, usersRes, rolesRes, notifyRes] = await Promise.all([
+                fetch(getApiUrl('/auth/admins'), { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(getApiUrl('/auth/users'), { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(getApiUrl('/api/system/roles'), { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(getApiUrl('/api/system/notifications'), { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            if (adminsRes.ok && usersRes.ok) {
+                const adminsData = await adminsRes.json();
+                const usersData = await usersRes.json();
+
+                // O BACKEND já consolidou os admins (incluindo cargo e perfil) no endpoint /auth/admins
+                setAllAdmins(adminsData);
+
+                // Empregados/Usuários geríveis são todos exceto o Global Admin principal
+                const employeeRoles = ['employee', 'funcionario', 'colaborador', 'admin', 'gestor', 'padrão'];
+                setAllUsers(usersData.filter(u => {
+                    const role = (u.role || '').toLowerCase().trim();
+                    const isGlobal = role === 'global_admin' || u.username === 'Aylton Dinis';
+                    return employeeRoles.includes(role) && !isGlobal;
+                }));
+            }
+
+            if (rolesRes.ok) {
+                const rolesData = await rolesRes.json();
+                if (rolesData.length > 0) setRoles(rolesData);
+            }
+            if (notifyRes.ok) {
+                const notifyData = await notifyRes.json();
+                setNotifications(notifyData.map(n => ({
+                    ...n,
+                    date: n.date || new Date().toISOString()
+                })));
+            }
+        } catch (e) {
+            console.error("Erro ao buscar dados do sistema:", e);
+        }
+    };
+
     useEffect(() => {
-        if (localStorage.getItem('ipm360_token')) {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (token) {
             fetchMe();
+            fetchSystemData();
         }
     }, []);
 
@@ -166,43 +193,28 @@ export const AuthProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : DEFAULT_ROLES;
     });
 
-    // Lista de Colaboradores Registrados (Todos os usuários que não são admin)
+    // Lista de Funcionários Registrados (Todos os usuários que não são admin de alto nível)
     const [allUsers, setAllUsers] = useState(() => {
         const saved = localStorage.getItem('ipm360_users');
         const users = saved ? JSON.parse(saved) : [];
-        // Filtro de segurança: Garantir que nenhum perfil de admin apareça como colaborador
-        return users.filter(u => u.username !== 'Aylton Dinis' && u.nome !== 'Aylton Dinis' && (u.role === 'employee' || u.role === 'colaborador'));
+        // Filtro de segurança: Garantir que admins globais/gestores não apareçam na lista simples de funcionários
+        return users.filter(u =>
+            u.role !== 'global_admin' &&
+            u.role !== 'gestor' &&
+            u.username !== 'Aylton Dinis'
+        );
     });
 
     // Estado Global de Processamento (Logout, Delete Account, etc)
     const [processingAction, setProcessingAction] = useState(null);
 
-    // Persistência
-    useEffect(() => {
-        localStorage.setItem('ipm360_admins', JSON.stringify(allAdmins));
-    }, [allAdmins]);
-
+    // Os efeitos de persistência no localStorage foram removidos para favorecer o Banco de Dados.
+    // Mantemos apenas para o currentUser como cache rápido de sessão se necessário.
     useEffect(() => {
         localStorage.setItem('ipm360_current_user', JSON.stringify(currentUser));
     }, [currentUser]);
 
-    useEffect(() => {
-        localStorage.setItem('ipm360_notifications', JSON.stringify(notifications));
-    }, [notifications]);
-
-    useEffect(() => {
-        localStorage.setItem('ipm360_admin_history', JSON.stringify(adminHistory));
-    }, [adminHistory]);
-
-    useEffect(() => {
-        localStorage.setItem('ipm360_roles', JSON.stringify(roles));
-    }, [roles]);
-
-    useEffect(() => {
-        localStorage.setItem('ipm360_users', JSON.stringify(allUsers));
-    }, [allUsers]);
-
-    const login = async (username_or_email, password) => {
+    const login = async (username_or_email, password, remember = false) => {
         try {
             const response = await fetch(getApiUrl('/auth/login'), {
                 method: 'POST',
@@ -212,7 +224,12 @@ export const AuthProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('ipm360_token', data.access_token);
+
+                if (remember) {
+                    localStorage.setItem('ipm360_token', data.access_token);
+                } else {
+                    sessionStorage.setItem('ipm360_token', data.access_token);
+                }
 
                 // Mapear dados para o formato esperado pelo frontend
                 const loggedUser = {
@@ -223,6 +240,7 @@ export const AuthProvider = ({ children }) => {
                 };
 
                 setCurrentUser(loggedUser);
+                if (data.user_theme) setTheme(data.user_theme);
                 await fetchMe(); // Buscar dados completos imediatamente
                 return { success: true, role: data.user_role, status: 'approved' };
             } else {
@@ -231,13 +249,7 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (e) {
             console.error("Erro no login:", e);
-            // Fallback para login local se o backend estiver offline (para não bloquear o utilizador)
-            const localUser = allAdmins.find(a => a.username === username_or_email && a.password === password);
-            if (localUser) {
-                setCurrentUser(localUser);
-                return { success: true, role: localUser.role, status: localUser.status };
-            }
-            return { success: false, message: 'Erro de conexão com o servidor' };
+            return { success: false, message: 'Erro de conexão com o servidor. Verifique se o backend está rodando na porta 8000.' };
         }
     };
 
@@ -246,6 +258,7 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(null);
         setProcessingAction(null);
         localStorage.removeItem('ipm360_token');
+        sessionStorage.removeItem('ipm360_token');
         localStorage.removeItem('ipm360_current_user');
     };
 
@@ -269,6 +282,7 @@ export const AuthProvider = ({ children }) => {
                     id: Date.now(),
                     type: 'new_registration',
                     message: `Novo pedido de Admin: ${userData.username}`,
+                    link: '/permissoes',
                     read: false,
                     date: new Date().toISOString()
                 };
@@ -313,22 +327,146 @@ export const AuthProvider = ({ children }) => {
         alert(`Pedido de ${admin?.username} recusado.`);
     };
 
-    const disableAdmin = (id) => {
-        setAllAdmins(prev => prev.map(a => a.id === id ? { ...a, status: 'disabled' } : a));
-    };
-
-    const enableAdmin = (id) => {
-        setAllAdmins(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a));
-    };
-
-    const deleteAdmin = (id) => {
-        if (window.confirm('Tem certeza que deseja eliminar este administrador permanentemente?')) {
-            setAllAdmins(prev => prev.filter(a => a.id !== id));
-            setAdminHistory(prev => prev.filter(h => h.adminId !== id));
+    const disableAdmin = async (id) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = allAdmins.find(a => a.id === id);
+            if (!admin) return;
+            await fetch(getApiUrl(`/auth/admins/${id}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ role: admin.role, status: 'disabled' })
+            });
+            await fetchSystemData();
+        } catch (e) {
+            console.error(e);
         }
     };
 
-    const markNotificationAsRead = (id) => {
+    const enableAdmin = async (id) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = allAdmins.find(a => a.id === id);
+            if (!admin) return;
+            await fetch(getApiUrl(`/auth/admins/${id}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ role: admin.role, status: 'approved' })
+            });
+            await fetchSystemData();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const deleteAdmin = async (id) => {
+        if (!window.confirm('Tem certeza que deseja eliminar este administrador permanentemente?')) return;
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = (allAdmins || []).find(a => a.id === id);
+            // Se o admin vier da tabela de usuários, usamos o endpoint de usuários
+            const endpoint = admin?.source === 'user_table' ? `/auth/users/${id}` : `/auth/admins/${id}`;
+            
+            const response = await fetch(getApiUrl(endpoint), {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                alert('Acesso administrativo removido com sucesso.');
+                await fetchSystemData();
+            } else {
+                const errorData = await response.json();
+                alert(`Erro ao remover administrador: ${errorData.detail || 'Erro desconhecido'}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Erro de conexão ao remover administrador.');
+        }
+    };
+
+    const disableUser = async (id) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            // Unificado: Tenta encontrar em admins primeiro (caso Helder)
+            const admin = (allAdmins || []).find(a => a.id === id);
+            if (admin) {
+                return disableAdmin(id);
+            }
+
+            await fetch(getApiUrl(`/auth/users/${id}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: 'disabled' })
+            });
+            await fetchSystemData();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const enableUser = async (id) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = (allAdmins || []).find(a => a.id === id);
+            if (admin) {
+                return enableAdmin(id);
+            }
+
+            await fetch(getApiUrl(`/auth/users/${id}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: 'approved' })
+            });
+            await fetchSystemData();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const deleteUser = async (id) => {
+        if (!window.confirm('Tem certeza que deseja eliminar este utilizador permanentemente?')) return;
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = (allAdmins || []).find(a => a.id === id);
+            if (admin) {
+                return deleteAdmin(id);
+            }
+
+            const response = await fetch(getApiUrl(`/auth/users/${id}`), {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                alert('Utilizador eliminado com sucesso.');
+                await fetchSystemData();
+            } else {
+                const errorData = await response.json();
+                alert(`Erro ao eliminar utilizador: ${errorData.detail || 'Erro desconhecido'}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Erro de conexão ao eliminar utilizador.');
+        }
+    };
+
+    const markNotificationAsRead = async (id) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (token) {
+            try {
+                await fetch(getApiUrl(`/api/system/notifications/${id}/read`), {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (e) {
+                console.error("Erro ao marcar notificação como lida no servidor:", e);
+            }
+        }
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
@@ -339,8 +477,8 @@ export const AuthProvider = ({ children }) => {
     const updateCurrentUser = async (newData) => {
         if (!currentUser) return;
 
-        const token = localStorage.getItem('ipm360_token');
-        if (token && currentUser.role !== 'employee') {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (token) {
             try {
                 const response = await fetch(getApiUrl('/auth/update-profile'), {
                     method: 'PUT',
@@ -349,14 +487,20 @@ export const AuthProvider = ({ children }) => {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
+                        nome_completo: newData.nome || newData.nome_completo,
                         telefone: newData.telefone,
                         sobre: newData.sobre,
                         sexo: newData.sexo,
-                        estado_civil: newData.estado_civil,
-                        departamento: newData.departamento,
+                        estado_civil: newData.estado_civil || newData.estadoCivil,
+                        departamento: newData.departamento || newData.dept,
                         cargo: newData.cargo,
                         foto: newData.foto,
-                        email: newData.email
+                        email: newData.email,
+                        bi: newData.bi,
+                        nacionalidade: newData.nacionalidade,
+                        naturalidade: newData.naturalidade,
+                        formacao_academica: newData.formacao_academica,
+                        idiomas: newData.idiomas
                     })
                 });
 
@@ -373,7 +517,7 @@ export const AuthProvider = ({ children }) => {
         const updated = { ...currentUser, ...newData };
         setCurrentUser(updated);
 
-        if (updated.role === 'employee' || updated.role === 'colaborador') {
+        if (updated.role === 'employee' || updated.role === 'funcionario') {
             setAllUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
         } else {
             setAllAdmins(prev => prev.map(a => a.id === currentUser.id ? updated : a));
@@ -382,7 +526,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const changePassword = async (current_password, new_password) => {
-        const token = localStorage.getItem('ipm360_token');
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
         if (!token) return { success: false, message: 'Não autenticado: Sessão local ativa. Por favor, saia e entre novamente para ativar a sessão segura no servidor.' };
 
         try {
@@ -407,8 +551,55 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const updateAdmin = (adminId, newData) => {
-        setAllAdmins(prev => prev.map(a => a.id === adminId ? { ...a, ...newData } : a));
+    const updateTheme = async (newTheme) => {
+        setTheme(newTheme);
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (token) {
+            try {
+                await fetch(getApiUrl('/auth/update-theme'), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ theme: newTheme })
+                });
+            } catch (e) {
+                console.error("Erro ao sincronizar tema com o servidor:", e);
+            }
+        }
+    };
+
+    const promoteEmployee = async (funcionarioId) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return { success: false, message: 'Não autenticado' };
+
+        try {
+            const response = await fetch(getApiUrl('/auth/promote-employee'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ funcionario_id: funcionarioId })
+            });
+
+            if (response.ok) {
+                await fetchSystemData();
+                return { success: true };
+            } else {
+                const data = await response.json();
+                return { success: false, message: data.detail || 'Erro ao promover funcionário' };
+            }
+        } catch (e) {
+            console.error("Erro ao promover funcionário:", e);
+            return { success: false, message: 'Erro de conexão com o servidor' };
+        }
+    };
+
+    const updateAdmin = async (adminId, newData) => {
+        // Redireciona para o updateUser que já está unificado e preparado para ambas as fontes
+        return updateUser(adminId, newData);
     };
 
 
@@ -450,7 +641,7 @@ export const AuthProvider = ({ children }) => {
                     email: userData.email,
                     password: userData.password,
                     nome_completo: userData.nome_completo || userData.nome,
-                    role: 'colaborador'
+                    role: 'funcionario'
                 })
             });
 
@@ -458,10 +649,10 @@ export const AuthProvider = ({ children }) => {
                 return { success: true };
             } else {
                 const errorData = await response.json();
-                return { success: false, message: errorData.detail || 'Erro ao registrar colaborador' };
+                return { success: false, message: errorData.detail || 'Erro ao registrar funcionário' };
             }
         } catch (e) {
-            console.error("Erro no registro de colaborador:", e);
+            console.error("Erro no registro de funcionário:", e);
             return { success: false, message: 'Erro de conexão com o servidor' };
         }
     };
@@ -498,18 +689,62 @@ export const AuthProvider = ({ children }) => {
 
     const hasPermission = (module, action) => {
         if (!currentUser) return false;
+
+        // Regra de Ouro: Apenas o Administrador Global pode ver ou editar Permissões
+        if (module === 'sistema' && action === 'Permissões') {
+            return currentUser.role === 'global_admin';
+        }
+
         if (currentUser.role === 'global_admin') return true;
- 
-        // Encontrar o perfil do usuário
-        const userRole = roles.find(r => r.nome === currentUser.role);
+
+        // Encontrar o perfil do usuário - Mapeamento Refinado
+        // global_admin -> Administradores
+        // gestor -> Gestores
+        // admin / funcionario -> Funcionários
+        const roleMap = {
+            'global_admin': 'Administradores',
+            'gestor': 'Gestores',
+            'admin': 'Funcionários',
+            'funcionario': 'Funcionários',
+            'colaborador': 'Funcionários'
+        };
+        const targetRoleName = roleMap[currentUser.role] || currentUser.role;
+        const userRole = roles.find(r => r.nome === targetRoleName);
         if (!userRole) return false;
- 
+
         return userRole.config[module]?.[action] || false;
     };
- 
+
+    const updateUser = async (id, newData) => {
+        const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
+        if (!token) return;
+        try {
+            const admin = (allAdmins || []).find(a => a.id === id);
+            const user = (allUsers || []).find(u => u.id === id);
+            const target = admin || user;
+
+            if (!target) return;
+
+            const endpoint = admin ? `/auth/admins/${id}` : `/auth/users/${id}`;
+            const body = admin 
+                ? { role: newData.role || admin.role, status: newData.status || admin.status }
+                : { status: newData.status || user.status, role: newData.role || user.role };
+
+            await fetch(getApiUrl(endpoint), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(body)
+            });
+            await fetchSystemData();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const value = {
         currentUser,
         allAdmins,
+        allUsers,
         notifications,
         login,
         logout,
@@ -521,12 +756,16 @@ export const AuthProvider = ({ children }) => {
         disableAdmin,
         enableAdmin,
         deleteAdmin,
+        disableUser,
+        enableUser,
+        deleteUser,
+        updateUser,
         adminHistory,
         loginUser,
         registerCollaborator,
         updateCurrentUser,
         deleteCurrentUser,
-        processingAction, // State exposto para o Layout renderizar a tela
+        processingAction,
         setProcessingAction,
         deleteAdminHistoryItem,
         clearAdminHistory,
@@ -536,9 +775,14 @@ export const AuthProvider = ({ children }) => {
         deleteRole,
         updateAdmin,
         hasPermission,
-        changePassword
+        changePassword,
+        theme,
+        updateTheme,
+        promoteEmployee,
+        getApiUrl,
+        token: localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token')
     };
- 
+
     return (
         <AuthContext.Provider value={value}>
             {children}

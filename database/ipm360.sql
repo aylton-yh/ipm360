@@ -13,7 +13,7 @@ USE IPM360;
 -- 1) TIPOS ENUM (definidos inline nas tabelas em MySQL)
 -- =========================
 -- genero_type     : 'Masculino', 'Feminino'
--- status_funcionario_type : 'Activo', 'Inactivo', 'Ferias', 'Suspenso'
+-- status_funcionario_type : 'Ativo', 'Inativo', 'Férias', 'Suspenso'
 -- status_solicitacao_type : 'pendente', 'aprovado', 'rejeitado', 'pago'
 
 -- =========================
@@ -41,11 +41,14 @@ CREATE TABLE IF NOT EXISTS funcionario (
     municipio_residencia VARCHAR(100),
     bairro_residencia VARCHAR(100),
     senha_hash VARCHAR(255),
-    status_funcionario ENUM('Activo','Inactivo','Ferias','Suspenso') DEFAULT 'Activo',
+    status_funcionario ENUM('Ativo','Inativo','Férias','Suspenso') DEFAULT 'Ativo',
     descricao TEXT,
+    num_agente VARCHAR(50),
+    data_nascimento DATE,
+    estado_civil VARCHAR(50),
     data_admissao DATE,
     is_online BOOLEAN DEFAULT FALSE,
-    img_path TEXT,
+    img_path LONGTEXT,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_funcionario_cargo FOREIGN KEY (id_cargo)
         REFERENCES cargo(id_seccao_cargo) ON DELETE SET NULL
@@ -56,6 +59,9 @@ CREATE TABLE IF NOT EXISTS departamento (
     id_departamento INT AUTO_INCREMENT PRIMARY KEY,
     nome_departamento VARCHAR(150) NOT NULL,
     responsavel_id_funcionario INT,
+    responsavel_nome VARCHAR(150),
+    cor VARCHAR(50) DEFAULT 'blue',
+    icone VARCHAR(50) DEFAULT 'tie',
     CONSTRAINT fk_departamento_responsavel FOREIGN KEY (responsavel_id_funcionario)
         REFERENCES funcionario(id_funcionario) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -106,6 +112,8 @@ CREATE TABLE IF NOT EXISTS nota (
     responsabilidade DECIMAL(5,2),
     relacao_humanas DECIMAL(5,2),
     actividades_extras DECIMAL(5,2),
+    faltas INT DEFAULT 0,
+    periodo VARCHAR(50) DEFAULT 'Mensal',
     data_lancamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_nota_funcionario FOREIGN KEY (id_funcionario)
         REFERENCES funcionario(id_funcionario) ON DELETE SET NULL,
@@ -295,6 +303,7 @@ CREATE TABLE IF NOT EXISTS cadastro_admin (
     senha_hash VARCHAR(255) NOT NULL,
     role VARCHAR(50) DEFAULT 'admin',
     status VARCHAR(20) DEFAULT 'pendente',
+    theme ENUM('light', 'dark') DEFAULT 'dark',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -302,13 +311,21 @@ CREATE TABLE IF NOT EXISTS cadastro_admin (
 CREATE TABLE IF NOT EXISTS admin_perfil (
     id_admin_perfil INT AUTO_INCREMENT PRIMARY KEY,
     id_cadastro_admin INT UNIQUE,
-    nome_completo VARCHAR(150),
-    bi VARCHAR(20) UNIQUE,
     id_funcionario INT,
-    foto TEXT,
+    nome_completo VARCHAR(150),
+    foto LONGTEXT,
     telefone VARCHAR(30),
     endereco TEXT,
     sobre TEXT,
+    bi VARCHAR(20),
+    sexo ENUM('Masculino', 'Feminino'),
+    estado_civil VARCHAR(50),
+    nacionalidade VARCHAR(100),
+    naturalidade VARCHAR(100),
+    formacao_academica TEXT,
+    idiomas TEXT,
+    departamento VARCHAR(150),
+    cargo VARCHAR(150),
     ultimo_login TIMESTAMP NULL,
     CONSTRAINT fk_admin_perfil_cadastro FOREIGN KEY (id_cadastro_admin)
         REFERENCES cadastro_admin(id_cadastro_admin) ON DELETE CASCADE,
@@ -322,8 +339,9 @@ CREATE TABLE IF NOT EXISTS cadastro_usuario (
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'colaborador',
+    role VARCHAR(50) DEFAULT 'funcionario',
     status VARCHAR(20) DEFAULT 'ativo',
+    theme ENUM('light', 'dark') DEFAULT 'dark',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -334,11 +352,15 @@ CREATE TABLE IF NOT EXISTS usuario_perfil (
     nome_completo VARCHAR(150),
     bi VARCHAR(20) UNIQUE,
     id_funcionario INT,
-    foto TEXT,
+    foto LONGTEXT,
     telefone VARCHAR(30),
     endereco TEXT,
     sobre TEXT,
     ultimo_login TIMESTAMP NULL,
+    sexo ENUM('Masculino','Feminino'),
+    estado_civil VARCHAR(50),
+    departamento VARCHAR(150),
+    cargo VARCHAR(150),
     CONSTRAINT fk_usuario_perfil_cadastro FOREIGN KEY (id_cadastro_usuario)
         REFERENCES cadastro_usuario(id_cadastro_usuario) ON DELETE CASCADE,
     CONSTRAINT fk_usuario_perfil_funcionario FOREIGN KEY (id_funcionario)
@@ -374,7 +396,7 @@ CREATE TABLE IF NOT EXISTS chat_message (
     sender_id VARCHAR(100) NOT NULL,
     sender_name VARCHAR(150) NOT NULL,
     sender_role VARCHAR(100),
-    sender_photo TEXT,
+    sender_photo LONGTEXT,
     tipo_mensagem VARCHAR(30) NOT NULL DEFAULT 'text',
     conteudo TEXT,
     metadata JSON,
@@ -393,6 +415,45 @@ CREATE TABLE IF NOT EXISTS chat_config (
     ultima_leitura TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ROLES
+CREATE TABLE IF NOT EXISTS roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    color VARCHAR(50),
+    nivel VARCHAR(50),
+    mfaStatus VARCHAR(20),
+    sessionLimit INT,
+    config JSON
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    admin_id INT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50),
+    is_global BOOLEAN DEFAULT FALSE,
+    is_read BOOLEAN DEFAULT FALSE,
+    link_id INT NULL,
+    link VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notification_user FOREIGN KEY (user_id)
+        REFERENCES cadastro_usuario(id_cadastro_usuario) ON DELETE CASCADE,
+    CONSTRAINT fk_notification_admin FOREIGN KEY (admin_id)
+        REFERENCES cadastro_admin(id_cadastro_admin) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS presenca (
+    id_presenca INT AUTO_INCREMENT PRIMARY KEY,
+    id_funcionario INT,
+    status ENUM('Presente', 'Faltou') NOT NULL,
+    data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_presenca_funcionario FOREIGN KEY (id_funcionario)
+        REFERENCES funcionario(id_funcionario) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- =========================
--- FIM DO SCRIPT - SISTEMA DE AVALIAÇÃO DE DESEMPENHO DE FUNCIONÁRIO-IPM360
+-- FIM DO SCRIPT
 -- =========================
