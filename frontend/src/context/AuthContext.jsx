@@ -92,10 +92,10 @@ export const AuthProvider = ({ children }) => {
 
     const getApiUrl = (endpoint) => {
         const host = window.location.hostname;
-        // Se estivermos no Vite (5173), tentamos o backend vindo do 8000
+        // Se estivermos no Vite (qualquer porta diferente de 8000 e de vazia), tentamos o backend vindo do 8000
         // Se estivermos no 8000 (produção unificada), usamos a porta atual
         let port = window.location.port;
-        if (port === '5173') port = '8000';
+        if (port !== '8000' && port !== '') port = '8000';
         const portStr = port ? `:${port}` : '';
         return `http://${host}${portStr}${endpoint}`;
     };

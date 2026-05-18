@@ -46,12 +46,12 @@ export default function PublicLayout() {
                 <div className={styles.divider}></div>
 
                 <AnimatePresence>
-                    {(isMenuOpen || window.innerWidth > 992) && (
+                    {(isMenuOpen || window.innerWidth > 1024) && (
                         <motion.nav 
                             className={`${styles.nav} ${isMenuOpen ? styles.navOpen : ''}`}
-                            initial={window.innerWidth <= 992 ? { opacity: 0, height: 0 } : {}}
-                            animate={window.innerWidth <= 992 ? { opacity: 1, height: 'auto' } : {}}
-                            exit={window.innerWidth <= 992 ? { opacity: 0, height: 0 } : {}}
+                            initial={window.innerWidth <= 1024 ? { opacity: 0, height: 0 } : {}}
+                            animate={window.innerWidth <= 1024 ? { opacity: 1, height: 'auto' } : {}}
+                            exit={window.innerWidth <= 1024 ? { opacity: 0, height: 0 } : {}}
                             transition={{ duration: 0.3 }}
                         >
                             <Link to="/solucoes" className={`${styles.navLink} ${location.pathname === '/solucoes' ? styles.active : ''}`}>Soluções</Link>

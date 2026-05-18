@@ -42,6 +42,22 @@
     gap: 15px;
 }
 
+@media (max-width: 1200px) {
+    .deptGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 900px) {
+    .deptGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .deptGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .deptCard {
     background: var(--card-bg);
     border-radius: 24px;
@@ -182,6 +198,49 @@
 }
 
 /* Modern Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modalContent {
+    background: var(--bg-primary);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.closeBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 5px;
+}
+
+.closeBtn:hover {
+    color: #ef4444;
+}
+
 .modalHeaderModern {
     padding: 25px 30px;
     border-bottom: 1px solid var(--border-color);

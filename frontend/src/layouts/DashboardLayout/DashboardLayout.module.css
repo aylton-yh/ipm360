@@ -89,11 +89,16 @@
   z-index: 999;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+
   .mobileHeader {
     display: flex;
     height: 60px;
     padding: 0 16px;
+    width: 100%;
   }
 
   .logoMobile {

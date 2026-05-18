@@ -209,11 +209,33 @@ body {
 
   .card-modern {
     padding: 20px;
+    background: var(--bg-secondary); /* More opaque background for mobile visibility */
+  }
+
+  :root, [data-theme='dark'] {
+    --glass-bg: rgba(15, 23, 42, 0.9);
+  }
+  
+  [data-theme='light'] {
+    --glass-bg: rgba(255, 255, 255, 0.9);
   }
 
   .btn-primary {
     padding: 8px 18px;
     font-size: 0.85rem;
+  }
+
+  /* Form Elements Responsive */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    min-height: 48px; /* Touch target */
+    font-size: 16px; /* Prevents iOS auto-zoom */
   }
 }
 

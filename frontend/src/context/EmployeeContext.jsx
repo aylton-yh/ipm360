@@ -17,7 +17,7 @@ export const EmployeeProvider = ({ children }) => {
   const getApiUrl = (endpoint) => {
     const host = window.location.hostname;
     let port = window.location.port;
-    if (port === '5173') port = '8000';
+    if (port !== '8000' && port !== '') port = '8000';
     const portStr = port ? `:${port}` : '';
     return `http://${host}${portStr}${endpoint}`;
   };

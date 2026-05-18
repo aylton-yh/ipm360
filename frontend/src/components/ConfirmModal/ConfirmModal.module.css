@@ -2,15 +2,15 @@
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     z-index: 9999;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .modal {
@@ -167,4 +167,16 @@
 
 .confirmBtn.warning:hover {
     background: #d97706;
+}
+
+@media (max-width: 480px) {
+    .modal {
+        padding: 20px;
+        width: 100%;
+    }
+
+    .footer {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
 }

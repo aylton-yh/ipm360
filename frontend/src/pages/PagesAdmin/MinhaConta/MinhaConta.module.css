@@ -302,6 +302,8 @@
   font-size: 16px;
   color: #1e293b;
   font-weight: 600;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .infoData input,
@@ -370,6 +372,35 @@
 @media (max-width: 850px) {
   .infoGrid {
     grid-template-columns: 1fr;
+  }
+
+  .mainCard {
+    padding: 24px;
+  }
+
+  .userName {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .actionButtons {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .btnEdit, .btnSave, .btnCancel {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .infoCard {
+    padding: 20px;
+  }
+
+  .infoItem {
+    gap: 12px;
   }
 }
 

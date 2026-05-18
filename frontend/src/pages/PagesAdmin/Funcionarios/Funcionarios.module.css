@@ -69,6 +69,12 @@
   gap: 20px;
 }
 
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card {
   padding: 0;
   position: relative;

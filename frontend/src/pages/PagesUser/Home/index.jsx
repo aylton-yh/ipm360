@@ -48,7 +48,7 @@ export default function Home() {
         const token = localStorage.getItem('ipm360_token') || sessionStorage.getItem('ipm360_token');
         const host = window.location.hostname;
         let port = window.location.port;
-        if (port === '5173') port = '8000';
+        if (port !== '8000' && port !== '') port = '8000';
 
         const response = await fetch(`http://${host}:${port}/api/evaluations/my-stats`, {
           headers: { 'Authorization': `Bearer ${token}` }

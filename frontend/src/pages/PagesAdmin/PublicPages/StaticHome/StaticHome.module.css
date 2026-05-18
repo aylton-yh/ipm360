@@ -13,8 +13,8 @@
     align-items: center;
     justify-content: center;
     margin-top: 0;
-    padding-top: 15vw;
-    /* Adjusted from fixed 220px to viewport-based */
+    padding-top: clamp(200px, 28vh, 400px);
+    /* Empurra mais para baixo para centrar visualmente abaixo do header fixo */
     padding-bottom: 0;
     position: relative;
     overflow: hidden;
@@ -25,13 +25,16 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    gap: 2rem;
     width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
     height: 100%;
     position: relative;
     padding: 0 2rem;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .heroLayout {
         flex-direction: column;
         padding: 0 1.5rem;
@@ -101,13 +104,25 @@
 .sliderCard {
     width: 100%;
     max-width: 1400px;
-    background: rgba(15, 23, 42, 0.7);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 1.5rem;
     overflow: hidden;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     transform: translateZ(0);
+}
+
+@media (min-width: 1200px) {
+    .sliderCard {
+        width: 300px;
+    }
+}
+
+@media (min-width: 993px) and (max-width: 1199px) {
+    .sliderCard {
+        width: 280px;
+    }
 }
 
 .sliderHeader {
@@ -199,9 +214,9 @@
     text-transform: uppercase;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .hero {
-        padding-top: 120px;
+        padding-top: clamp(140px, 20vh, 200px);
     }
 
     .heroTitle {
@@ -220,7 +235,7 @@
     }
 
     .hero {
-        padding-top: 100px;
+        padding-top: clamp(120px, 15vh, 180px);
     }
 }
 

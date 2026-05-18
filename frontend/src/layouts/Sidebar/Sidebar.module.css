@@ -82,7 +82,7 @@
   box-shadow: var(--shadow-premium);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sidebar {
     transform: translateX(-100%);
     width: 250px !important;
@@ -105,7 +105,7 @@
   align-items: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header {
     padding: 20px 16px;
   }
@@ -424,7 +424,7 @@
   bottom: 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .notifDropdown {
     width: calc(100vw - 40px);
     left: 20px;
@@ -473,7 +473,7 @@
   height: 35px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sidebar {
     width: 260px;
   }

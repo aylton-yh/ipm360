@@ -28,7 +28,7 @@
 .featuresGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2.5rem;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -89,7 +89,7 @@
 /* Novo Cabeçalho da Página */
 .pageHeader {
     text-align: center;
-    padding: 12rem 2rem 5rem;
+    padding: clamp(8rem, 15vh, 12rem) clamp(1rem, 5vw, 2rem) clamp(3rem, 8vh, 5rem);
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
 }
 

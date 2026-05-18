@@ -1,4 +1,4 @@
-# IPM360° - Sistema Integrado de Gestão de Desempenho
+git # IPM360° - Sistema Integrado de Gestão de Desempenho
 
 ![IPM360 Logo](frontend/src/assets/images/LogoSistema.jpeg)
 

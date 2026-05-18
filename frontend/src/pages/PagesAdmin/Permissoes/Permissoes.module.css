@@ -380,6 +380,37 @@
   margin: 0;
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-color);
+  list-style: none; /* remove default arrow */
+}
+.moduleHeader::-webkit-details-marker {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .moduleHeader {
+    pointer-events: none;
+  }
+  .moduleCard:not([open]) .togglesList {
+    display: block; /* force show on desktop */
+  }
+}
+
+@media (max-width: 768px) {
+  .moduleHeader {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .moduleHeader::after {
+    content: '▼';
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+  }
+  .moduleCard[open] .moduleHeader::after {
+    transform: rotate(180deg);
+  }
 }
 
 .moduleHeader h4 {

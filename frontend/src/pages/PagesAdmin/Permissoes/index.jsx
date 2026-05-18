@@ -315,8 +315,8 @@ export default function Permissoes() {
                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className={styles.tabContent}>
                     <div className={styles.permissionsGrid}>
                       {Object.entries(editingGroup.config || {}).map(([category, perms]) => (
-                        <div key={category} className={styles.moduleCard}>
-                          <div className={styles.moduleHeader}><h4>{category.toUpperCase()}</h4></div>
+                        <details key={category} className={styles.moduleCard}>
+                          <summary className={styles.moduleHeader}><h4>{category.toUpperCase()}</h4></summary>
                           <div className={styles.togglesList}>
                             {Object.entries(perms || {}).map(([key, value]) => (
                               <div key={key} className={styles.toggleRow} onClick={() => handleToggle(category, key)}>
@@ -327,7 +327,7 @@ export default function Permissoes() {
                               </div>
                             ))}
                           </div>
-                        </div>
+                        </details>
                       ))}
                     </div>
                   </motion.div>

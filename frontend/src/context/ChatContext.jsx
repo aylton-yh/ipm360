@@ -11,7 +11,7 @@ export const ChatProvider = ({ children }) => {
     const getChatUrl = (endpoint, isWs = false) => {
         const host = window.location.hostname;
         let port = window.location.port;
-        if (port === '5173') port = '8000';
+        if (port !== '8000' && port !== '') port = '8000';
         const portStr = port ? `:${port}` : '';
         const protocol = isWs
             ? (window.location.protocol === 'https:' ? 'wss:' : 'ws:')

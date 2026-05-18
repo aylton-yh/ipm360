@@ -246,3 +246,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 600px) {
+  .settingCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .themeSwitch,
+  .selectInput {
+    width: 100% !important;
+    justify-content: center;
+  }
+}
