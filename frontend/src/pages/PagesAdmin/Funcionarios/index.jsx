@@ -82,9 +82,9 @@ export default function Funcionarios() {
         resultadoQualitativo: nextStatus,
         criterios: []
       });
-      toast.success(`Status de ${func.nome} alterado para ${nextStatus}`);
+      alert(`Status de ${func.nome} alterado para ${nextStatus}`);
     } else {
-      toast.error('Erro ao alterar status: ' + res.message);
+      alert('Erro ao alterar status: ' + res.message);
     }
 
     setMenuAberto(null);
