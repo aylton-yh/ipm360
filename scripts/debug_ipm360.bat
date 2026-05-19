@@ -1,17 +1,18 @@
 @echo off
 title IPM360 DEBUG
-set PROJECT_DIR=%~dp0
-cd /d %PROJECT_DIR%
+set SCRIPT_DIR=%~dp0
+cd /d %SCRIPT_DIR%..
+set PROJECT_DIR=%CD%\
 
 echo ==========================================
 echo       MODO DEBUG - IPM360
 echo ==========================================
 
 echo [1/3] Iniciando Backend...
-start "Backend" cmd /k "cd backend && npm start"
+start "Backend" cmd /k "cd /d \"%PROJECT_DIR%backend\" && npm start"
 
 echo [2/3] Iniciando Frontend...
-start "Frontend" cmd /k "cd frontend && npm run dev"
+start "Frontend" cmd /k "cd /d \"%PROJECT_DIR%frontend\" && npm run dev"
 
 echo [3/3] Aguardando inicializacao...
 timeout /t 10

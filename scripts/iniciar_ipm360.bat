@@ -1,7 +1,8 @@
 @echo off
 title IPM360 Launcher
-set PROJECT_DIR=%~dp0
-cd /d %PROJECT_DIR%
+set SCRIPT_DIR=%~dp0
+cd /d %SCRIPT_DIR%..
+set PROJECT_DIR=%CD%\
 
 echo ==========================================
 echo       INICIANDO SISTEMA IPM360
@@ -19,12 +20,11 @@ if "%ERRORLEVEL%"=="1" (
 
 :: 2. Iniciar o Backend em background
 echo [2/4] Iniciando Servidor Backend...
-wscript.exe "silenciar_janelas.vbs" "cmd.exe /c cd /d \"%PROJECT_DIR%backend\" && npm start"
+wscript.exe "%SCRIPT_DIR%silenciar_janelas.vbs" "cmd.exe /c cd /d \"%PROJECT_DIR%backend\" && npm start"
 
 :: 3. Iniciar o Frontend em background
 echo [3/4] Iniciando Servidor Frontend...
-wscript.exe "silenciar_janelas.vbs" "cmd.exe /c cd /d \"%PROJECT_DIR%frontend\" && npm run dev"
-
+wscript.exe "%SCRIPT_DIR%silenciar_janelas.vbs" "cmd.exe /c cd /d \"%PROJECT_DIR%frontend\" && npm run dev"
 
 :: 4. Abrir o Chrome
 echo [4/4] Abrindo IPM360 no Chrome...

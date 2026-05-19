@@ -91,7 +91,7 @@ const StaticHome = () => {
                         <div className={styles.footerCol}>
                             <h4>Contacto & Localização</h4>
                             <p>📧 ipm@gmail.com</p>
-                            <p>📞 +244 944 436 342</p>
+                            <p>📞 +244 999 999 999</p>
                             <p>📍 Bairro Maiombe, Funda</p>
                         </div>
 
@@ -104,7 +104,7 @@ const StaticHome = () => {
                         <div className={styles.footerCol}>
                             <h4>Suporte Técnico</h4>
                             <p>📧 ipm@gmail.com</p>
-                            <p>📱 Whatsapp: 944 436 342</p>
+                            <p>📱 Whatsapp: 999 999 999</p>
                             <p>🕒 Disponibilidade: 24h / 24h</p>
                         </div>
                     </div>
